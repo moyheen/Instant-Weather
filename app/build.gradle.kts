@@ -97,6 +97,11 @@ android {
     buildFeatures {
         dataBinding = true
         viewBinding = true
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = Config.kotlinCompilerExtensionVersion
     }
 
     testOptions {
@@ -135,6 +140,11 @@ dependencies {
 
     // Material Design
     implementation(View.material)
+
+    // Compose
+    implementation(Compose.material3)
+    implementation(Compose.preview)
+    implementation(Compose.debugPreview)
 
     // Room
     implementation(Database.roomRuntime)

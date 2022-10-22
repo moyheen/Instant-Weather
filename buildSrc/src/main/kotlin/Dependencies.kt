@@ -6,7 +6,7 @@ import org.gradle.api.JavaVersion
 
 object Config {
     const val minSdkVersion = 21
-    const val compileSdkVersion = 30
+    const val compileSdkVersion = 33
     const val targetSdkVersion = 30
     const val versionName = "1.0"
     const val versionCode = 5
@@ -15,6 +15,7 @@ object Config {
     const val isMultiDexEnabled = true
     const val applicationId = "com.mayokunadeniyi.instantweather"
     const val testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    const val kotlinCompilerExtensionVersion = "1.3.2"
 }
 
 
@@ -25,7 +26,7 @@ interface Libraries {
 
 object Plugins {
     object Version {
-        const val gradleAndroidVersion = "7.0.2"
+        const val gradleAndroidVersion = "7.3.0"
         const val googleServices = "4.3.5"
     }
 
@@ -43,7 +44,7 @@ object Plugins {
 object Kotlin {
 
     object Versions {
-        const val kotlin = "1.4.21"
+        const val kotlin = "1.7.20"
         const val coroutines = "1.4.2"
     }
 
@@ -102,7 +103,7 @@ object AndroidX : Libraries {
 object Dagger : Libraries {
 
     private object Versions {
-        const val hilt = "2.40.1"
+        const val hilt = "2.44"
     }
 
     const val daggerHilt = "com.google.dagger:hilt-android:${Versions.hilt}"
@@ -138,7 +139,7 @@ object Network : Libraries {
 object Database : Libraries {
 
     object Versions {
-        const val room = "2.2.6"
+        const val room = "2.4.3"
     }
 
     const val roomRuntime = "androidx.room:room-runtime:${Versions.room}"
@@ -190,6 +191,18 @@ object View : Libraries {
     )
 }
 
+object Compose : Libraries {
+    private object Versions {
+        const val material3 = "1.0.0-rc01"
+        const val preview = "1.2.1"
+    }
+
+    const val material3 = "androidx.compose.material3:material3:${Versions.material3}"
+    const val preview = "androidx.compose.ui:ui-tooling-preview:${Versions.preview}"
+    const val debugPreview = "androidx.compose.ui:ui-tooling:${Versions.preview}"
+
+    override val components = listOf(material3, preview, debugPreview)
+}
 
 object Utils : Libraries {
 
