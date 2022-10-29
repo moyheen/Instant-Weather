@@ -11,7 +11,16 @@
         android:label="@string/home_dashboard"
         tools:layout="@layout/fragment_home">
         <action
-            android:id="@+id/action_homeFragment_to_forecastFragment"
+            android:id="@+id/action_homeFragment_to_homeComposeFragment"
+            app:destination="@id/homeComposeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/homeComposeFragment"
+        android:name="com.mayokunadeniyi.instantweather.ui.home.HomeComposeFragment"
+        android:label="@string/home_dashboard"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_homeComposeFragment_to_forecastFragment"
             app:destination="@id/forecastFragment" />
     </fragment>
     <fragment

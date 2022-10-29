@@ -7,6 +7,11 @@
         android:icon="@drawable/ic_home"/>
 
     <item
+        android:id="@+id/homeComposeFragment"
+        android:title="@string/home_dashboard"
+        android:icon="@drawable/ic_home"/>
+
+    <item
         android:id="@+id/forecastFragment"
         android:title="@string/forecast"
         android:icon="@drawable/ic_insert_chart"/>
