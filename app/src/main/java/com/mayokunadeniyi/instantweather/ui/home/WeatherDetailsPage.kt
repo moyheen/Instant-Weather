@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,11 +20,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.pwittchen.weathericonview.WeatherIconView
 import com.mayokunadeniyi.instantweather.R
-import com.mayokunadeniyi.instantweather.ui.theme.GoogleSans
 import com.mayokunadeniyi.instantweather.utils.SharedPreferenceHelper
 import com.mayokunadeniyi.instantweather.utils.WeatherIconGenerator
 
@@ -51,17 +50,15 @@ fun WeatherDetailsPage() {
             Spacer(modifier = height16)
             Text(
                 text = "Shepherds Bush",
-                color = Color.Black,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = GoogleSans
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = height8)
             Text(
-                text = "Wednesday Oct 26, 11:02 AM",
-                color = Color.Black,
-                fontSize = 14.sp,
-                fontFamily = GoogleSans
+                text = "Monday Nov 7, 02:57 AM",
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.bodySmall
             )
             Spacer(modifier = height8)
             AndroidView(::WeatherIconView) { iconView ->
@@ -72,16 +69,14 @@ fun WeatherDetailsPage() {
             Spacer(modifier = height16)
             Text(
                 text = stringResource(tempValueResId, 36.3),
-                color = Color.Black,
-                fontSize = 30.sp,
-                fontFamily = GoogleSans
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = height16)
             Text(
                 text = "Drizzle",
-                fontSize = 20.sp,
-                color = Color(0xFF808080),
-                fontFamily = GoogleSans
+                color = MaterialTheme.colorScheme.onTertiary,
+                style = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = height16)
             Row(
@@ -93,7 +88,9 @@ fun WeatherDetailsPage() {
 
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
             RowItem(
                 image = painterResource(R.drawable.ic_humidity),
@@ -126,16 +123,14 @@ fun RowItem(image: Painter, description: String, value: String) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = description,
-            color = Color.Black,
-            fontSize = 14.sp,
-            fontFamily = GoogleSans
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.bodySmall
         )
         Spacer(modifier = Modifier.height(5.dp))
         Text(
             text = value,
-            color = Color.Black,
-            fontSize = 14.sp,
-            fontFamily = GoogleSans
+            color = MaterialTheme.colorScheme.onPrimary,
+            style = MaterialTheme.typography.bodySmall
         )
         Spacer(modifier = Modifier.height(32.dp))
     }

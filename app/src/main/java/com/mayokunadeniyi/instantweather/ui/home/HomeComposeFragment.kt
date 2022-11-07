@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
@@ -19,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.mayokunadeniyi.instantweather.R
 import com.mayokunadeniyi.instantweather.databinding.FragmentHomeBinding
 import com.mayokunadeniyi.instantweather.ui.BaseFragment
+import com.mayokunadeniyi.instantweather.ui.theme.InstantWeatherTheme
 import com.mayokunadeniyi.instantweather.utils.*
 import com.mayokunadeniyi.instantweather.worker.UpdateWeatherWorker
 import dagger.hilt.android.AndroidEntryPoint
@@ -97,7 +97,7 @@ class HomeComposeFragment : BaseFragment() {
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                MaterialTheme {
+                InstantWeatherTheme {
                     WeatherDetailsPage()
                 }
             }
