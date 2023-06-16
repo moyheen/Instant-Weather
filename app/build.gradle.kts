@@ -134,6 +134,7 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation(Kotlin.stdlib)
     implementation(AndroidX.appCompat)
+    implementation(AndroidX.composeMaterial)
     implementation(AndroidX.coreKtx)
     implementation(View.constraintLayout)
     implementation(AndroidX.legacySupport)
@@ -142,9 +143,11 @@ dependencies {
     implementation(View.material)
 
     // Compose
+    implementation(platform(Compose.composeBom))
     implementation(Compose.material3)
     implementation(Compose.preview)
-    implementation(Compose.debugPreview)
+    implementation(Compose.runtimeLivedata)
+    debugImplementation(Compose.tooling)
 
     // Room
     implementation(Database.roomRuntime)
@@ -183,8 +186,10 @@ dependencies {
 
     // Lifecycle KTX
     implementation(AndroidX.viewModel)
+    implementation(AndroidX.viewModelCompose)
     implementation(AndroidX.liveData)
     implementation(AndroidX.lifeCycleCommon)
+    implementation(AndroidX.fragment)
 
     // Paging Library
     implementation(AndroidX.paging)
@@ -197,6 +202,7 @@ dependencies {
 
     // Dagger-Hilt
     implementation(Dagger.daggerHilt)
+    implementation(Dagger.hiltNavigationCompose)
     kapt(Dagger.hiltCompiler)
 
     // OKHttp Logging Interceptor

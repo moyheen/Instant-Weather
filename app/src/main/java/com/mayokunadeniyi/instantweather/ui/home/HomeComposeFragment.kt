@@ -34,7 +34,7 @@ class HomeComposeFragment : BaseFragment() {
     @Inject
     lateinit var prefs: SharedPreferenceHelper
 
-    private val viewModel by viewModels<HomeFragmentViewModel> { viewModelFactoryProvider }
+    private val viewModel by viewModels<HomeFragmentViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,15 +53,10 @@ class HomeComposeFragment : BaseFragment() {
     private fun invokeLocationAction() {
         when {
             allPermissionsGranted() -> {
-                viewModel.fetchLocationLiveData().observeOnce(
-                    viewLifecycleOwner,
-                    { location ->
-                        if (location != null) {
-                            viewModel.getWeather(location)
-                            setupWorkManager()
-                        }
-                    }
-                )
+                viewModel.fetchLocationLiveData().observeOnce(viewLifecycleOwner) { location ->
+                    viewModel.getWeather(location)
+                    setupWorkManager()
+                }
             }
 
             shouldShowRequestPermissionRationale() -> {
@@ -100,130 +95,6 @@ class HomeComposeFragment : BaseFragment() {
                 InstantWeatherTheme {
                     WeatherDetailsPage()
                 }
-            }
-        }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-//        binding.viewModel = viewModel
-//        hideAllViews(true)
-//        observeViewModels()
-//        binding.swipeRefreshId.setOnRefreshListener {
-//            binding.errorText.visibility = View.GONE
-//            binding.progressBar.visibility = View.VISIBLE
-//            hideViews()
-//            initiateRefresh()
-//            binding.swipeRefreshId.isRefreshing = false
-//        }
-    }
-
-    private fun observeViewModels() {
-        with(viewModel) {
-            weather.observe(viewLifecycleOwner) { weather ->
-                weather?.let {
-                    prefs.saveCityId(it.cityId)
-
-                    if (prefs.getSelectedTemperatureUnit() == activity?.resources?.getString(R.string.temp_unit_fahrenheit))
-                        it.networkWeatherCondition.temp =
-                            convertCelsiusToFahrenheit(it.networkWeatherCondition.temp)
-
-                    binding.weather = it
-                    binding.networkWeatherDescription = it.networkWeatherDescription.first()
-                }
-            }
-
-            dataFetchState.observe(viewLifecycleOwner) { state ->
-                when (state) {
-                    true -> {
-                        unHideViews()
-                        binding.errorText.visibility = View.GONE
-                    }
-                    false -> {
-                        hideViews()
-                        binding.apply {
-                            errorText.visibility = View.VISIBLE
-                            progressBar.visibility = View.GONE
-                            loadingText.visibility = View.GONE
-                        }
-                    }
-                }
-            }
-
-            isLoading.observe(viewLifecycleOwner) { state ->
-                when (state) {
-                    true -> {
-                        hideViews()
-                        binding.apply {
-                            progressBar.visibility = View.VISIBLE
-                            loadingText.visibility = View.VISIBLE
-                        }
-                    }
-                    false -> {
-                        binding.apply {
-                            progressBar.visibility = View.GONE
-                            loadingText.visibility = View.GONE
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun initiateRefresh() {
-        viewModel.fetchLocationLiveData().observeOnce(
-            viewLifecycleOwner,
-            { location ->
-                if (location != null) {
-                    viewModel.refreshWeather(location)
-                } else {
-                    hideViews()
-                    binding.apply {
-                        errorText.visibility = View.VISIBLE
-                        progressBar.visibility = View.GONE
-                        loadingText.visibility = View.GONE
-                    }
-                }
-            }
-        )
-    }
-
-    private fun hideViews() {
-        binding.apply {
-            weatherInText.visibility = View.GONE
-            weatherDet.visibility = View.GONE
-            separator.visibility = View.GONE
-            dateText.visibility = View.GONE
-            weatherIcon.visibility = View.GONE
-            weatherTemperature.visibility = View.GONE
-            weatherMain.visibility = View.GONE
-        }
-    }
-
-    private fun unHideViews() {
-        binding.apply {
-            weatherInText.visibility = View.VISIBLE
-            weatherDet.visibility = View.VISIBLE
-            separator.visibility = View.VISIBLE
-            dateText.visibility = View.VISIBLE
-            weatherIcon.visibility = View.VISIBLE
-            weatherTemperature.visibility = View.VISIBLE
-            weatherMain.visibility = View.VISIBLE
-        }
-    }
-
-    private fun hideAllViews(state: Boolean) {
-        if (state) {
-            binding.apply {
-                weatherDet.visibility = View.GONE
-                separator.visibility = View.GONE
-                dateText.visibility = View.GONE
-                weatherIcon.visibility = View.GONE
-                weatherTemperature.visibility = View.GONE
-                weatherMain.visibility = View.GONE
-                errorText.visibility = View.GONE
-                progressBar.visibility = View.GONE
-                loadingText.visibility = View.GONE
             }
         }
     }
@@ -278,12 +149,7 @@ class HomeComposeFragment : BaseFragment() {
     }
 
     private fun setupWorkManager() {
-        viewModel.fetchLocationLiveData().observeOnce(
-            this,
-            {
-                prefs.saveLocation(it)
-            }
-        )
+        viewModel.fetchLocationLiveData().observeOnce(this) { prefs.saveLocation(it) }
         val constraint = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()

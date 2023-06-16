@@ -26,11 +26,6 @@ abstract class ViewModelModule {
 
     @IntoMap
     @Binds
-    @ViewModelKey(HomeFragmentViewModel::class)
-    abstract fun bindHomeFragmentViewModel(viewModel: HomeFragmentViewModel): ViewModel
-
-    @IntoMap
-    @Binds
     @ViewModelKey(ForecastFragmentViewModel::class)
     abstract fun bindForecastFragmentViewModel(viewModel: ForecastFragmentViewModel): ViewModel
 

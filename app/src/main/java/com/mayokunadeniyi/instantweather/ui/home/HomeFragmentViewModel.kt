@@ -11,6 +11,7 @@ import com.mayokunadeniyi.instantweather.utils.LocationLiveData
 import com.mayokunadeniyi.instantweather.utils.Result
 import com.mayokunadeniyi.instantweather.utils.asLiveData
 import com.mayokunadeniyi.instantweather.utils.convertKelvinToCelsius
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -19,10 +20,10 @@ import javax.inject.Inject
 /**
  * Created by Mayokun Adeniyi on 2020-01-25.
  */
+@HiltViewModel
 class HomeFragmentViewModel @Inject constructor(
     private val repository: WeatherRepository
-) :
-    ViewModel() {
+) : ViewModel() {
 
     @Inject
     lateinit var locationLiveData: LocationLiveData
@@ -90,7 +91,6 @@ class HomeFragmentViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = repository.getWeather(location, true)) {
                 is Result.Success -> {
-                    _isLoading.value = false
                     if (result.data != null) {
                         val weather = result.data.apply {
                             this.networkWeatherCondition.temp = convertKelvinToCelsius(this.networkWeatherCondition.temp)
@@ -104,6 +104,7 @@ class HomeFragmentViewModel @Inject constructor(
                         _weather.postValue(null)
                         _dataFetchState.postValue(false)
                     }
+                    _isLoading.value = false
                 }
                 is Result.Error -> {
                     _isLoading.value = false

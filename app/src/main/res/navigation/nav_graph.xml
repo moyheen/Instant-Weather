@@ -3,22 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation"
-    app:startDestination="@id/homeFragment">
-
-    <fragment
-        android:id="@+id/homeFragment"
-        android:name="com.mayokunadeniyi.instantweather.ui.home.HomeFragment"
-        android:label="@string/home_dashboard"
-        tools:layout="@layout/fragment_home">
-        <action
-            android:id="@+id/action_homeFragment_to_homeComposeFragment"
-            app:destination="@id/homeComposeFragment" />
-    </fragment>
+    app:startDestination="@id/homeComposeFragment">
     <fragment
         android:id="@+id/homeComposeFragment"
         android:name="com.mayokunadeniyi.instantweather.ui.home.HomeComposeFragment"
-        android:label="@string/home_dashboard"
-        tools:layout="@layout/fragment_home">
+        android:label="@string/home_dashboard">
         <action
             android:id="@+id/action_homeComposeFragment_to_forecastFragment"
             app:destination="@id/forecastFragment" />

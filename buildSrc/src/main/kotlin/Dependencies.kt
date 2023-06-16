@@ -10,12 +10,12 @@ object Config {
     const val targetSdkVersion = 30
     const val versionName = "1.0"
     const val versionCode = 5
-    val javaVersion = JavaVersion.VERSION_11
+    val javaVersion = JavaVersion.VERSION_17
     const val buildTools = "30.0.3"
     const val isMultiDexEnabled = true
     const val applicationId = "com.mayokunadeniyi.instantweather"
     const val testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    const val kotlinCompilerExtensionVersion = "1.3.2"
+    const val kotlinCompilerExtensionVersion = "1.4.1"
 }
 
 
@@ -26,7 +26,7 @@ interface Libraries {
 
 object Plugins {
     object Version {
-        const val gradleAndroidVersion = "7.3.0"
+        const val gradleAndroidVersion = "7.4.1"
         const val googleServices = "4.3.5"
     }
 
@@ -44,7 +44,7 @@ object Plugins {
 object Kotlin {
 
     object Versions {
-        const val kotlin = "1.7.20"
+        const val kotlin = "1.8.0"
         const val coroutines = "1.4.2"
     }
 
@@ -60,14 +60,16 @@ object Kotlin {
 
 object AndroidX : Libraries {
     private object Versions {
+        const val composeMaterial = "1.4.3"
         const val androidx_core = "1.3.2"
         const val appCompat = "1.2.0"
-        const val lifeCycle = "2.3.0-alpha03"
+        const val lifeCycle = "2.6.1"
         const val preferences = "1.1.1"
         const val legacy = "1.0.0"
         const val work = "2.5.0"
         const val paging = "2.1.2"
-        const val fragment = "1.3.0-alpha06"
+        const val fragment = "1.5.2"
+        const val fragmentTesting = "1.3.0-alpha06"
 
         const val archCoreTesting = "2.1.0"
         const val coreKtxTest = "1.3.0"
@@ -75,11 +77,15 @@ object AndroidX : Libraries {
         const val testRules = "1.3.0"
     }
 
+    const val composeMaterial = "androidx.compose.material:material:${Versions.composeMaterial}"
     const val coreKtx = "androidx.core:core-ktx:${Versions.androidx_core}"
     const val appCompat = "androidx.appcompat:appcompat:${Versions.appCompat}"
+    const val fragment = "androidx.fragment:fragment-ktx:${Versions.fragment}"
     const val liveData = "androidx.lifecycle:lifecycle-livedata-ktx:${Versions.lifeCycle}"
     const val viewModel =
         "androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.lifeCycle}"
+    const val viewModelCompose =
+        "androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.lifeCycle}"
     const val lifeCycleCommon =
         "androidx.lifecycle:lifecycle-common-java8:${Versions.lifeCycle}"
     const val legacySupport = "androidx.legacy:legacy-support-v4:${Versions.legacy}"
@@ -92,25 +98,37 @@ object AndroidX : Libraries {
     const val coreKtxTest = "androidx.test:core-ktx:${Versions.coreKtxTest}"
     const val testExt = "androidx.test.ext:junit-ktx:${Versions.testExt}"
     const val testRules = "androidx.test:rules:${Versions.testRules}"
-    const val fragmentTesting = "androidx.fragment:fragment-testing:${Versions.fragment}"
+    const val fragmentTesting = "androidx.fragment:fragment-testing:${Versions.fragmentTesting}"
 
 
     override val components: List<String>
-        get() = listOf(coreKtx, viewModel, appCompat, lifeCycleCommon, liveData, preferences)
+        get() = listOf(
+            composeMaterial,
+            coreKtx,
+            viewModel,
+            viewModelCompose,
+            appCompat,
+            lifeCycleCommon,
+            liveData,
+            preferences
+        )
 }
 
 
 object Dagger : Libraries {
 
     private object Versions {
-        const val hilt = "2.44"
+        const val hilt = "2.45"
+        const val hiltNavigationCompose = "1.0.0"
     }
 
     const val daggerHilt = "com.google.dagger:hilt-android:${Versions.hilt}"
     const val hiltCompiler = "com.google.dagger:hilt-compiler:${Versions.hilt}"
     const val hiltGradlePlugin = "com.google.dagger:hilt-android-gradle-plugin:${Versions.hilt}"
+    const val hiltNavigationCompose =
+        "androidx.hilt:hilt-navigation-compose:${Versions.hiltNavigationCompose}"
 
-    override val components: List<String> = listOf(daggerHilt, hiltCompiler)
+    override val components: List<String> = listOf(daggerHilt, hiltCompiler, hiltNavigationCompose)
 }
 
 object Network : Libraries {
@@ -193,15 +211,16 @@ object View : Libraries {
 
 object Compose : Libraries {
     private object Versions {
-        const val material3 = "1.0.0-rc01"
-        const val preview = "1.2.1"
+        const val composeBom = "2023.04.01"
     }
 
-    const val material3 = "androidx.compose.material3:material3:${Versions.material3}"
-    const val preview = "androidx.compose.ui:ui-tooling-preview:${Versions.preview}"
-    const val debugPreview = "androidx.compose.ui:ui-tooling:${Versions.preview}"
+    const val composeBom = "androidx.compose:compose-bom:${Versions.composeBom}"
+    const val material3 = "androidx.compose.material3:material3"
+    const val preview = "androidx.compose.ui:ui-tooling-preview"
+    const val tooling = "androidx.compose.ui:ui-tooling"
+    const val runtimeLivedata = "androidx.compose.runtime:runtime-livedata"
 
-    override val components = listOf(material3, preview, debugPreview)
+    override val components = listOf(composeBom, material3, preview, runtimeLivedata, tooling)
 }
 
 object Utils : Libraries {
