@@ -8,14 +8,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.mayokunadeniyi.instantweather.R
 
-val googleSansFamily = FontFamily(Font(resId = R.font.googlesans, FontWeight.Normal))
+val GoogleSans = FontFamily(Font(R.font.googlesans))
 
-val googleSansTypography = Typography(
-    bodyLarge = TextStyle(fontFamily = googleSansFamily, fontSize = 30.sp),
+val Typography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = GoogleSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 30.sp
+    ),
     bodyMedium = TextStyle(
-        fontFamily = googleSansFamily,
+        fontFamily = GoogleSans,
+        fontWeight = FontWeight.Normal,
         fontSize = 20.sp,
         letterSpacing = 0.17.sp
     ),
-    bodySmall = TextStyle(fontFamily = googleSansFamily, fontSize = 14.sp, letterSpacing = 0.2.sp)
+    bodySmall = TextStyle(
+        fontFamily = GoogleSans,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        letterSpacing = 0.2.sp
+    )
 )

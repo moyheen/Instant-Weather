@@ -5,4 +5,12 @@
     <dimen name="day_circle_height">24dp</dimen>
     <dimen name="day_circle_radius">120dp</dimen>
     <dimen name="day_circle_stroke_width">1dp</dimen>
+    <dimen name="size_5">5dp</dimen>
+    <dimen name="size_8">8dp</dimen>
+    <dimen name="size_16">16dp</dimen>
+    <dimen name="size_24">24dp</dimen>
+    <dimen name="size_25">25dp</dimen>
+    <dimen name="size_30">30dp</dimen>
+    <dimen name="size_32">32dp</dimen>
+    <integer name="home_weather_icon_size">100</integer>
 </resources>
