@@ -11,6 +11,7 @@ import com.mayokunadeniyi.instantweather.mapper.WeatherForecastMapperRemote
 import com.mayokunadeniyi.instantweather.mapper.WeatherMapperLocal
 import com.mayokunadeniyi.instantweather.mapper.WeatherMapperRemote
 import com.mayokunadeniyi.instantweather.utils.Result
+import com.mayokunadeniyi.instantweather.utils.SharedPreferenceHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class WeatherRepositoryImpl @Inject constructor(
     private val remoteDataSource: WeatherRemoteDataSource,
     private val localDataSource: WeatherLocalDataSource,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    private val sharedPreferencesHelper: SharedPreferenceHelper
 ) : WeatherRepository {
 
     override suspend fun getWeather(location: LocationModel, refresh: Boolean): Result<Weather> =
@@ -32,6 +34,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 when (val response = remoteDataSource.getWeather(location)) {
                     is Result.Success -> {
                         if (response.data != null) {
+                            sharedPreferencesHelper.saveCityId(response.data.cityId)
                             Result.Success(mapper.transformToDomain(response.data))
                         } else {
                             Result.Success(null)
@@ -48,6 +51,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 val mapper = WeatherMapperLocal()
                 val forecast = localDataSource.getWeather()
                 if (forecast != null) {
+                    sharedPreferencesHelper.saveCityId(forecast.cityId)
                     Result.Success(mapper.transformToDomain(forecast))
                 } else {
                     Result.Success(null)

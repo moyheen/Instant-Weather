@@ -9,6 +9,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.work.Constraints
@@ -18,12 +20,11 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.material.snackbar.Snackbar
 import com.mayokunadeniyi.instantweather.R
-import com.mayokunadeniyi.instantweather.databinding.FragmentHomeBinding
 import com.mayokunadeniyi.instantweather.ui.BaseFragment
+import com.mayokunadeniyi.instantweather.ui.theme.InstantWeatherTheme
 import com.mayokunadeniyi.instantweather.utils.GPS_REQUEST_CHECK_SETTINGS
 import com.mayokunadeniyi.instantweather.utils.GpsUtil
 import com.mayokunadeniyi.instantweather.utils.SharedPreferenceHelper
-import com.mayokunadeniyi.instantweather.utils.convertCelsiusToFahrenheit
 import com.mayokunadeniyi.instantweather.utils.observeOnce
 import com.mayokunadeniyi.instantweather.worker.UpdateWeatherWorker
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,13 +34,14 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class HomeFragment : BaseFragment() {
 
-    private lateinit var binding: FragmentHomeBinding
     private var isGPSEnabled = false
 
     @Inject
     lateinit var prefs: SharedPreferenceHelper
 
-    private val viewModel by viewModels<HomeFragmentViewModel> { viewModelFactoryProvider }
+    private val viewModel by viewModels<HomeFragmentViewModel>()
+
+    private lateinit var rootView: ComposeView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,15 +60,10 @@ class HomeFragment : BaseFragment() {
     private fun invokeLocationAction() {
         when {
             allPermissionsGranted() -> {
-                viewModel.fetchLocationLiveData().observeOnce(
-                    viewLifecycleOwner,
-                    { location ->
-                        if (location != null) {
-                            viewModel.getWeather(location)
-                            setupWorkManager()
-                        }
-                    }
-                )
+                viewModel.fetchLocationLiveData().observeOnce(viewLifecycleOwner) { location ->
+                    viewModel.getWeather(location)
+                    setupWorkManager()
+                }
             }
 
             shouldShowRequestPermissionRationale() -> {
@@ -98,133 +95,17 @@ class HomeFragment : BaseFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentHomeBinding.inflate(inflater)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        binding.viewModel = viewModel
-        hideAllViews(true)
-        observeViewModels()
-        binding.swipeRefreshId.setOnRefreshListener {
-            binding.errorText.visibility = View.GONE
-            binding.progressBar.visibility = View.VISIBLE
-            hideViews()
-            initiateRefresh()
-            binding.swipeRefreshId.isRefreshing = false
-        }
-    }
-
-    private fun observeViewModels() {
-        with(viewModel) {
-            weather.observe(viewLifecycleOwner) { weather ->
-                weather?.let {
-                    prefs.saveCityId(it.cityId)
-
-                    if (prefs.getSelectedTemperatureUnit() == activity?.resources?.getString(R.string.temp_unit_fahrenheit))
-                        it.networkWeatherCondition.temp =
-                            convertCelsiusToFahrenheit(it.networkWeatherCondition.temp)
-
-                    binding.weather = it
-                    binding.networkWeatherDescription = it.networkWeatherDescription.first()
-                }
-            }
-
-            dataFetchState.observe(viewLifecycleOwner) { state ->
-                when (state) {
-                    true -> {
-                        unHideViews()
-                        binding.errorText.visibility = View.GONE
-                    }
-                    false -> {
-                        hideViews()
-                        binding.apply {
-                            errorText.visibility = View.VISIBLE
-                            progressBar.visibility = View.GONE
-                            loadingText.visibility = View.GONE
-                        }
-                    }
-                }
-            }
-
-            isLoading.observe(viewLifecycleOwner) { state ->
-                when (state) {
-                    true -> {
-                        hideViews()
-                        binding.apply {
-                            progressBar.visibility = View.VISIBLE
-                            loadingText.visibility = View.VISIBLE
-                        }
-                    }
-                    false -> {
-                        binding.apply {
-                            progressBar.visibility = View.GONE
-                            loadingText.visibility = View.GONE
-                        }
-                    }
+    ): View {
+        rootView = ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                InstantWeatherTheme {
+                    HomeScreen()
                 }
             }
         }
-    }
 
-    private fun initiateRefresh() {
-        viewModel.fetchLocationLiveData().observeOnce(
-            viewLifecycleOwner,
-            { location ->
-                if (location != null) {
-                    viewModel.refreshWeather(location)
-                } else {
-                    hideViews()
-                    binding.apply {
-                        errorText.visibility = View.VISIBLE
-                        progressBar.visibility = View.GONE
-                        loadingText.visibility = View.GONE
-                    }
-                }
-            }
-        )
-    }
-
-    private fun hideViews() {
-        binding.apply {
-            weatherInText.visibility = View.GONE
-            weatherDet.visibility = View.GONE
-            separator.visibility = View.GONE
-            dateText.visibility = View.GONE
-            weatherIcon.visibility = View.GONE
-            weatherTemperature.visibility = View.GONE
-            weatherMain.visibility = View.GONE
-        }
-    }
-
-    private fun unHideViews() {
-        binding.apply {
-            weatherInText.visibility = View.VISIBLE
-            weatherDet.visibility = View.VISIBLE
-            separator.visibility = View.VISIBLE
-            dateText.visibility = View.VISIBLE
-            weatherIcon.visibility = View.VISIBLE
-            weatherTemperature.visibility = View.VISIBLE
-            weatherMain.visibility = View.VISIBLE
-        }
-    }
-
-    private fun hideAllViews(state: Boolean) {
-        if (state) {
-            binding.apply {
-                weatherDet.visibility = View.GONE
-                separator.visibility = View.GONE
-                dateText.visibility = View.GONE
-                weatherIcon.visibility = View.GONE
-                weatherTemperature.visibility = View.GONE
-                weatherMain.visibility = View.GONE
-                errorText.visibility = View.GONE
-                progressBar.visibility = View.GONE
-                loadingText.visibility = View.GONE
-            }
-        }
+        return rootView
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -239,7 +120,7 @@ class HomeFragment : BaseFragment() {
 
                     Activity.RESULT_CANCELED -> {
                         Snackbar.make(
-                            binding.root,
+                            rootView,
                             getString(R.string.enable_gps),
                             Snackbar.LENGTH_LONG
                         ).show()
@@ -277,12 +158,7 @@ class HomeFragment : BaseFragment() {
     }
 
     private fun setupWorkManager() {
-        viewModel.fetchLocationLiveData().observeOnce(
-            this,
-            {
-                prefs.saveLocation(it)
-            }
-        )
+        viewModel.fetchLocationLiveData().observeOnce(this) { prefs.saveLocation(it) }
         val constraint = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()

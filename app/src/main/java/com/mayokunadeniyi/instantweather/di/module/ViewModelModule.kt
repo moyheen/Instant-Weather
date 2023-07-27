@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.mayokunadeniyi.instantweather.ViewModelFactory
 import com.mayokunadeniyi.instantweather.di.key.ViewModelKey
 import com.mayokunadeniyi.instantweather.ui.forecast.ForecastFragmentViewModel
-import com.mayokunadeniyi.instantweather.ui.home.HomeFragmentViewModel
 import com.mayokunadeniyi.instantweather.ui.search.SearchFragmentViewModel
 import dagger.Binds
 import dagger.Module

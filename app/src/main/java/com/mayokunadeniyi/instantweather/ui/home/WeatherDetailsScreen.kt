@@ -1,5 +1,6 @@
 package com.mayokunadeniyi.instantweather.ui.home
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,57 +18,46 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.integerResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.github.pwittchen.weathericonview.WeatherIconView
 import com.mayokunadeniyi.instantweather.R
 import com.mayokunadeniyi.instantweather.data.model.Weather
-import com.mayokunadeniyi.instantweather.utils.SharedPreferenceHelper
 import com.mayokunadeniyi.instantweather.utils.WeatherIconGenerator
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun WeatherDetailsScreen(homeFragmentViewModel: HomeFragmentViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    val fahrenheitUnit = stringResource(id = R.string.temp_unit_fahrenheit)
-    val tempValueResId = if (SharedPreferenceHelper.getInstance(context)
-            .getSelectedTemperatureUnit() == fahrenheitUnit
-    )
-        R.string.temp_value_fahrenheit
-    else
-        R.string.temp_value_celsius
-    val weatherState: State<Weather?> = homeFragmentViewModel.weather.observeAsState()
-    val weather: Weather? = weatherState.value
-    val isLoading by homeFragmentViewModel.isLoading.observeAsState()
+fun WeatherDetailsScreen(
+    weather: Weather,
+    @StringRes tempValueResId: Int,
+    time: String,
+    onPullToRefresh: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var isRefreshing = rememberSaveable { false }
     val pullRefreshState = rememberPullRefreshState(
-        refreshing = isLoading ?: true,
+        refreshing = isRefreshing,
         onRefresh = {
-            homeFragmentViewModel.fetchLocationLiveData().value?.let {
-                homeFragmentViewModel.refreshWeather(it)
-            }
-        })
+            isRefreshing = true
+            onPullToRefresh()
+        }
+    )
 
-    Box(
-        modifier = Modifier.pullRefresh(pullRefreshState)
-    ) {
+    Box(modifier = modifier.pullRefresh(pullRefreshState)) {
         Column(
             modifier = Modifier
                 .matchParentSize()
@@ -79,48 +69,47 @@ fun WeatherDetailsScreen(homeFragmentViewModel: HomeFragmentViewModel = hiltView
             ) {
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_16)))
                 Text(
-                    text = weather?.name ?: "",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = weather.name,
+                    color = colorScheme.onPrimary,
+                    style = typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_8)))
                 Text(
-                    text = homeFragmentViewModel.time,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.bodySmall
+                    text = time,
+                    color = colorScheme.onPrimary,
+                    style = typography.bodySmall
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_8)))
                 WeatherIcon(
-                    weatherDescription = weather?.networkWeatherDescription?.get(0)?.description
-                        ?: ""
+                    weatherDescription = weather.networkWeatherDescription[0].description ?: ""
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_16)))
                 Text(
                     text = stringResource(
                         tempValueResId,
-                        weather?.networkWeatherCondition?.temp ?: 0.0
+                        weather.networkWeatherCondition.temp
                     ),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    style = MaterialTheme.typography.bodyLarge
+                    color = colorScheme.onPrimary,
+                    style = typography.bodyLarge
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_16)))
                 Text(
-                    text = weather?.networkWeatherDescription?.get(0)?.main ?: "",
-                    color = MaterialTheme.colorScheme.onTertiary,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = weather.networkWeatherDescription[0].main ?: "",
+                    color = colorScheme.onTertiary,
+                    style = typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_16)))
                 Divider(
                     modifier = Modifier.width(dimensionResource(id = R.dimen.size_25)),
-                    color = Color(0xFF808080)
+                    color = colorScheme.onTertiary
                 )
             }
             Spacer(modifier = Modifier.weight(1F))
             BottomRow(weather = weather, modifier = Modifier.fillMaxWidth())
         }
         PullRefreshIndicator(
-            refreshing = isLoading ?: true,
+            refreshing = isRefreshing,
             state = pullRefreshState,
             modifier = Modifier.align(Alignment.TopCenter)
         )
@@ -130,7 +119,7 @@ fun WeatherDetailsScreen(homeFragmentViewModel: HomeFragmentViewModel = hiltView
 @Composable
 fun WeatherIcon(weatherDescription: String, modifier: Modifier = Modifier) {
     val iconSize = integerResource(id = R.integer.home_weather_icon_size)
-    val iconColor = MaterialTheme.colorScheme.secondary.toArgb()
+    val iconColor = colorScheme.secondary.toArgb()
 
     AndroidView(
         modifier = modifier,
@@ -147,7 +136,7 @@ fun WeatherIcon(weatherDescription: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BottomRow(weather: Weather?, modifier: Modifier = Modifier) {
+fun BottomRow(weather: Weather, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.padding(dimensionResource(id = R.dimen.size_16)),
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -157,7 +146,7 @@ fun BottomRow(weather: Weather?, modifier: Modifier = Modifier) {
             description = stringResource(id = R.string.humidity),
             value = stringResource(
                 id = R.string.humidity_value,
-                weather?.networkWeatherCondition?.humidity ?: 0.0
+                weather.networkWeatherCondition.humidity
             )
         )
         BottomRowItem(
@@ -165,13 +154,13 @@ fun BottomRow(weather: Weather?, modifier: Modifier = Modifier) {
             description = stringResource(id = R.string.pressure),
             value = stringResource(
                 id = R.string.pressure_value,
-                weather?.networkWeatherCondition?.pressure ?: 0.0
+                weather.networkWeatherCondition.pressure
             )
         )
         BottomRowItem(
             image = painterResource(R.drawable.ic_wind),
             description = stringResource(id = R.string.wind_speed),
-            value = stringResource(id = R.string.wind_speed_value, weather?.wind?.speed ?: 0.0)
+            value = stringResource(id = R.string.wind_speed_value, weather.wind.speed)
         )
     }
 }
@@ -188,20 +177,12 @@ fun BottomRowItem(
             painter = image,
             contentDescription = description,
             modifier = Modifier.height(dimensionResource(id = R.dimen.size_30)),
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.secondary)
+            colorFilter = ColorFilter.tint(colorScheme.secondary)
         )
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_24)))
-        Text(
-            text = description,
-            color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.bodySmall
-        )
+        Text(text = description, color = colorScheme.onPrimary, style = typography.bodySmall)
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_5)))
-        Text(
-            text = value,
-            color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.bodySmall
-        )
+        Text(text = value, color = colorScheme.onPrimary, style = typography.bodySmall)
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.size_32)))
     }
 }

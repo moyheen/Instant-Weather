@@ -1,5 +1,7 @@
 package com.mayokunadeniyi.instantweather.di.module
 
+import com.mayokunadeniyi.instantweather.data.source.repository.UserPreferencesRepository
+import com.mayokunadeniyi.instantweather.data.source.repository.UserPreferencesRepositoryImpl
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepositoryImpl
 import dagger.Binds
@@ -17,4 +19,9 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindRepository(weatherRepositoryImpl: WeatherRepositoryImpl): WeatherRepository
+
+    @Binds
+    abstract fun bindUserPreferencesRepository(
+        userPreferencesRepositoryImpl: UserPreferencesRepositoryImpl
+    ): UserPreferencesRepository
 }

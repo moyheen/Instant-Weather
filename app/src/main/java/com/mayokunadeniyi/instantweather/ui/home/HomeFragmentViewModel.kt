@@ -1,15 +1,18 @@
 package com.mayokunadeniyi.instantweather.ui.home
 
 import android.annotation.SuppressLint
-import androidx.lifecycle.MutableLiveData
+import androidx.annotation.StringRes
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mayokunadeniyi.instantweather.data.model.LocationModel
 import com.mayokunadeniyi.instantweather.data.model.Weather
+import com.mayokunadeniyi.instantweather.data.source.repository.UserPreferencesRepository
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
 import com.mayokunadeniyi.instantweather.utils.LocationLiveData
 import com.mayokunadeniyi.instantweather.utils.Result
-import com.mayokunadeniyi.instantweather.utils.asLiveData
 import com.mayokunadeniyi.instantweather.utils.convertKelvinToCelsius
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -20,28 +23,26 @@ import javax.inject.Inject
 /**
  * Created by Mayokun Adeniyi on 2020-01-25.
  */
+
+sealed interface HomeScreenUiState {
+    data class Success(
+        val weather: Weather,
+        @StringRes val selectedTemperatureUnit: Int,
+        val time: String
+    ) : HomeScreenUiState
+    object Error : HomeScreenUiState
+    object Loading : HomeScreenUiState
+}
+
 @HiltViewModel
 class HomeFragmentViewModel @Inject constructor(
-    private val repository: WeatherRepository
+    private val weatherRepository: WeatherRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val locationLiveData: LocationLiveData
 ) : ViewModel() {
 
-    @Inject
-    lateinit var locationLiveData: LocationLiveData
-
-    init {
-        currentSystemTime()
-    }
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading = _isLoading.asLiveData()
-
-    private val _dataFetchState = MutableLiveData<Boolean>()
-    val dataFetchState = _dataFetchState.asLiveData()
-
-    private val _weather = MutableLiveData<Weather?>()
-    val weather = _weather.asLiveData()
-
-    val time = currentSystemTime()
+    var homeScreenUiState: HomeScreenUiState by mutableStateOf(HomeScreenUiState.Loading)
+        private set
 
     fun fetchLocationLiveData() = locationLiveData
 
@@ -51,25 +52,24 @@ class HomeFragmentViewModel @Inject constructor(
      * @see refreshWeather
      */
     fun getWeather(location: LocationModel) {
-        _isLoading.postValue(true)
+        homeScreenUiState = HomeScreenUiState.Loading
         viewModelScope.launch {
-            when (val result = repository.getWeather(location, false)) {
-                is Result.Success -> {
-                    _isLoading.value = false
+            val selectedTemperatureUnit = userPreferencesRepository.getSelectedTemperatureUnit()
+            val result = weatherRepository.getWeather(location, false)
+            when {
+                result is Result.Success -> {
                     if (result.data != null) {
-                        val weather = result.data
-                        _dataFetchState.value = true
-                        _weather.value = weather
+                        homeScreenUiState = HomeScreenUiState.Success(
+                            result.data,
+                            selectedTemperatureUnit,
+                            currentSystemTime()
+                        )
                     } else {
                         refreshWeather(location)
                     }
                 }
-                is Result.Error -> {
-                    _isLoading.value = false
-                    _dataFetchState.value = false
-                }
 
-                is Result.Loading -> _isLoading.postValue(true)
+                result is Result.Error -> homeScreenUiState = HomeScreenUiState.Error
             }
         }
     }
@@ -87,31 +87,32 @@ class HomeFragmentViewModel @Inject constructor(
      * This enables the [Weather] for the current [location] to be received.
      */
     fun refreshWeather(location: LocationModel) {
-        _isLoading.value = true
+        homeScreenUiState = HomeScreenUiState.Loading
         viewModelScope.launch {
-            when (val result = repository.getWeather(location, true)) {
-                is Result.Success -> {
-                    if (result.data != null) {
-                        val weather = result.data.apply {
-                            this.networkWeatherCondition.temp = convertKelvinToCelsius(this.networkWeatherCondition.temp)
-                        }
-                        _dataFetchState.value = true
-                        _weather.value = weather
-
-                        repository.deleteWeatherData()
-                        repository.storeWeatherData(weather)
-                    } else {
-                        _weather.postValue(null)
-                        _dataFetchState.postValue(false)
+            val selectedTemperatureUnit = userPreferencesRepository.getSelectedTemperatureUnit()
+            val result = weatherRepository.getWeather(location, true)
+            when {
+                result is Result.Success && result.data != null -> {
+                    val weather = result.data.apply {
+                        this.networkWeatherCondition.temp =
+                            convertKelvinToCelsius(this.networkWeatherCondition.temp)
                     }
-                    _isLoading.value = false
+                    homeScreenUiState = HomeScreenUiState.Success(
+                        weather,
+                        selectedTemperatureUnit,
+                        currentSystemTime()
+                    )
+
+                    weatherRepository.deleteWeatherData()
+                    weatherRepository.storeWeatherData(weather)
                 }
-                is Result.Error -> {
-                    _isLoading.value = false
-                    _dataFetchState.value = false
-                }
-                is Result.Loading -> _isLoading.postValue(true)
+
+                else -> homeScreenUiState = HomeScreenUiState.Error
             }
         }
+    }
+
+    fun onPullToRefresh() {
+        locationLiveData.value?.let { refreshWeather(it) }
     }
 }
