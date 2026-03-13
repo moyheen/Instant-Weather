@@ -1,67 +1,78 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     id("kotlin-parcelize")
     id("kotlin-kapt")
-    id("androidx.navigation.safeargs.kotlin")
-    id("com.google.firebase.crashlytics")
-    id("dagger.hilt.android.plugin")
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.safeargs)
+    alias(libs.plugins.crashlytics)
+    alias(libs.plugins.hilt)
 }
 
 android {
-    compileSdk = Config.compileSdkVersion
-    buildToolsVersion = Config.buildTools
+    namespace = "com.mayokunadeniyi.instantweather"
+    compileSdk = 34
+
     if (project.hasProperty("keystore.properties")) {
         val keystorePropertiesFile = rootProject.file("keystore.properties")
-        val keystoreProperties = Properties()
-        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+        if (keystorePropertiesFile.exists()) {
+            val keystoreProperties = Properties()
+            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
-        signingConfigs {
-            getByName("debug") {
-                keyAlias = keystoreProperties["keyAlias"].toString()
-                keyPassword = keystoreProperties["keyPassword"].toString()
-                storeFile = file(rootDir.absolutePath + keystoreProperties["storeFile"])
-                storePassword = keystoreProperties["storePassword"].toString()
-            }
-            create("release") {
-                keyAlias = keystoreProperties["keyAlias"].toString()
-                keyPassword = keystoreProperties["keyPassword"].toString()
-                storeFile = file(rootDir.absolutePath + keystoreProperties["storeFile"])
-                storePassword = keystoreProperties["storePassword"].toString()
+            signingConfigs {
+                getByName("debug") {
+                    keyAlias = keystoreProperties["keyAlias"]?.toString()
+                    keyPassword = keystoreProperties["keyPassword"]?.toString()
+                    storeFile = keystoreProperties["storeFile"]?.toString()?.let { file(rootDir.absolutePath + it) }
+                    storePassword = keystoreProperties["storePassword"]?.toString()
+                }
+                create("release") {
+                    keyAlias = keystoreProperties["keyAlias"]?.toString()
+                    keyPassword = keystoreProperties["keyPassword"]?.toString()
+                    storeFile = keystoreProperties["storeFile"]?.toString()?.let { file(rootDir.absolutePath + it) }
+                    storePassword = keystoreProperties["storePassword"]?.toString()
+                }
             }
         }
     }
 
     defaultConfig {
-        applicationId = Config.applicationId
-        minSdk = Config.minSdkVersion
-        targetSdk = Config.targetSdkVersion
-        versionCode = Config.versionCode
-        versionName = Config.versionName
-        testInstrumentationRunner = Config.testInstrumentationRunner
+        applicationId = "com.mayokunadeniyi.instantweather"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 5
+        versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val API_KEY: String = gradleLocalProperties(rootDir).getProperty("API_KEY")
-        val ALGOLIA_API_KEY: String = gradleLocalProperties(rootDir).getProperty("ALGOLIA_API_KEY")
-        val ALGOLIA_APP_ID: String = gradleLocalProperties(rootDir).getProperty("ALGOLIA_APP_ID")
-        val ALGOLIA_INDEX_NAME: String = gradleLocalProperties(rootDir).getProperty("ALGOLIA_INDEX_NAME")
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+
+        fun getValidProperty(key: String, default: String): String {
+            val value = localProperties.getProperty(key)
+            if (value.isNullOrBlank() || value == "\"\"" || value == "''") {
+                return default
+            }
+            return if (!value.startsWith("\"")) "\"$value\"" else value
+        }
+
+        val API_KEY = getValidProperty("API_KEY", "\"YOUR_API_KEY\"")
+        val ALGOLIA_API_KEY = getValidProperty("ALGOLIA_API_KEY", "\"YOUR_ALGOLIA_KEY\"")
+        val ALGOLIA_APP_ID = getValidProperty("ALGOLIA_APP_ID", "\"YOUR_ALGOLIA_APP_ID\"")
+        val ALGOLIA_INDEX_NAME = getValidProperty("ALGOLIA_INDEX_NAME", "\"YOUR_INDEX\"")
 
         buildConfigField("String", "API_KEY", API_KEY)
         buildConfigField("String", "ALGOLIA_API_KEY", ALGOLIA_API_KEY)
         buildConfigField("String", "ALGOLIA_APP_ID", ALGOLIA_APP_ID)
         buildConfigField("String", "ALGOLIA_INDEX_NAME", ALGOLIA_INDEX_NAME)
         buildConfigField("String", "BASE_URL", "\"http://api.openweathermap.org/\"")
-
-        kapt {
-            arguments {
-                arg("room.schemaLocation", "$projectDir/schemas")
-            }
-            correctErrorTypes = true
-        }
     }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
@@ -69,34 +80,29 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (project.hasProperty("keystore.properties")) {
+            if (project.hasProperty("keystore.properties") && rootProject.file("keystore.properties").exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
             isDebuggable = false
         }
 
         getByName("debug") {
-            if (project.hasProperty("keystore.properties")) {
+            if (project.hasProperty("keystore.properties") && rootProject.file("keystore.properties").exists()) {
                 signingConfig = signingConfigs.getByName("debug")
             }
             isDebuggable = true
         }
     }
 
-    android {
-        sourceSets {
-            getByName("test").java.srcDir("src/sharedTest/java")
-            getByName("androidTest").java.srcDir("src/sharedTest/java")
-        }
-    }
-
-    hilt {
-        enableAggregatingTask = true
+    sourceSets {
+        getByName("test").java.srcDir("src/sharedTest/java")
+        getByName("androidTest").java.srcDir("src/sharedTest/java")
     }
 
     buildFeatures {
         dataBinding = true
         viewBinding = true
+        buildConfig = true
     }
 
     testOptions {
@@ -107,122 +113,108 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility(Config.javaVersion)
-        targetCompatibility(Config.javaVersion)
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
-    tasks.withType().all {
-        kotlinOptions {
-            jvmTarget = Config.javaVersion.toString()
-        }
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
-    packagingOptions {
+    packaging {
         resources.excludes.add("**/attach_hotspot_windows.dll")
         resources.excludes.add("META-INF/licenses/**")
         resources.excludes.add("META-INF/AL2.0")
         resources.excludes.add("META-INF/LGPL2.1")
+        resources.excludes.add("META-INF/gradle/incremental.annotation.processors")
     }
 }
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation(Kotlin.stdlib)
-    implementation(AndroidX.appCompat)
-    implementation(AndroidX.coreKtx)
-    implementation(View.constraintLayout)
-    implementation(AndroidX.legacySupport)
+    
+    // Kotlin
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlin.coroutines.android)
 
-    // Material Design
-    implementation(View.material)
+    // AndroidX & Core
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.legacy.support)
+    implementation(libs.androidx.preference.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.paging.runtime)
 
-    // Room
-    implementation(Database.roomRuntime)
-    kapt(Database.roomCompiler)
-    implementation(Database.roomKtx)
+    // Lifecycle
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.common.java8)
 
-    // Kotlin Coroutines
-    implementation(Kotlin.coroutinesAndroid)
+    // UI & Views
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.google.material)
+    implementation(libs.androidx.viewpager2)
+    implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.recyclerview)
 
-    // Navigation Components
-    implementation(Navigation.navigationFragment)
-    implementation(Navigation.navigationUi)
+    // Room Database
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
-    // Retrofit
-    implementation(Network.retrofit)
-    implementation(Network.gsonConverter)
-    implementation(Network.gson)
+    // Navigation
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
 
-    // Preferences
-    implementation(AndroidX.preferences)
+    // Network & Serialization
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
 
-    // Timber
-    implementation(Utils.timber)
+    // Chucker
+    debugImplementation(libs.chucker)
+    releaseImplementation(libs.chucker.noop)
 
-    // Weather Image
-    implementation(Utils.weatherImage)
+    // Hilt DI
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
-    // CalenderView
-    implementation(Utils.calendarView)
+    // Utility Libraries
+    implementation(libs.timber)
+    implementation(libs.glide)
+    ksp(libs.glide.compiler)
+    implementation(libs.weather.icon.view)
+    implementation(libs.calendar.view)
+    implementation(libs.algolia.search)
+    implementation(libs.elastic.views)
 
-    // Google Play Services
-    implementation(Google.googlePlayGms)
+    // Play Services & Firebase
+    implementation(libs.play.services.location)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
 
-    // Algolia Search
-    implementation(Utils.algoliaSearch)
+    // Testing - JVM
+    testImplementation(libs.junit)
+    testImplementation(libs.test.ext.junit)
+    testImplementation(libs.test.core.ktx)
+    testImplementation(libs.arch.core.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.hamcrest)
+    testImplementation(libs.kotlin.coroutines.test)
+    testImplementation(libs.mockito.core)
 
-    // Lifecycle KTX
-    implementation(AndroidX.viewModel)
-    implementation(AndroidX.liveData)
-    implementation(AndroidX.lifeCycleCommon)
-
-    // Paging Library
-    implementation(AndroidX.paging)
-
-    // Elastic view
-    implementation(Utils.elasticViews)
-
-    // WorkManager
-    implementation(AndroidX.workManager)
-
-    // Dagger-Hilt
-    implementation(Dagger.daggerHilt)
-    kapt(Dagger.hiltCompiler)
-
-    // OKHttp Logging Interceptor
-    implementation(Network.okhttpInterceptor)
-
-    // Chuck
-    debugImplementation(Network.chuck)
-    releaseImplementation(Network.chuckNoOp)
-
-    // Firebase BoM, Crashlytics, Analytics
-    implementation(platform(Firebase.firebaseBom))
-    implementation(Firebase.crashlytics)
-    implementation(Firebase.analytics)
-
-    // AndroidX Test - JVM testing
-    testImplementation(AndroidX.testExt)
-    testImplementation(AndroidX.coreKtxTest)
-    testImplementation(AndroidX.archCoreTesting)
-    testImplementation(UnitTest.junit)
-    testImplementation(UnitTest.roboelectric)
-    testImplementation(UnitTest.hamcrest)
-    testImplementation(Kotlin.coroutineTest)
-    testImplementation(UnitTest.mockitoCore)
-
-    // AndroidX Test - Instrumented testing
-    androidTestImplementation(UnitTest.mockitoCore)
-    androidTestImplementation(AndroidX.testExt)
-    androidTestImplementation(AndroidTest.espresso)
-    androidTestImplementation(AndroidTest.espressoContrib)
-    androidTestImplementation(AndroidTest.espressoIntent)
-    androidTestImplementation(AndroidX.archCoreTesting)
-    androidTestImplementation(AndroidX.coreKtxTest)
-    androidTestImplementation(AndroidX.testRules)
-    androidTestImplementation(Kotlin.coroutineTest)
-
-    // Until the bug at https://issuetracker.google.com/128612536 is fixed
-    debugImplementation(AndroidX.fragmentTesting)
-    implementation(AndroidTest.idlingResource)
+    // Testing - Instrumented
+    androidTestImplementation(libs.mockito.core)
+    androidTestImplementation(libs.test.ext.junit)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.espresso.contrib)
+    androidTestImplementation(libs.espresso.intents)
+    androidTestImplementation(libs.arch.core.testing)
+    androidTestImplementation(libs.test.core.ktx)
+    androidTestImplementation(libs.test.rules)
+    androidTestImplementation(libs.kotlin.coroutines.test)
+    androidTestImplementation(libs.espresso.idling.resource)
 }

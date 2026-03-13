@@ -39,14 +39,14 @@ class InstantWeatherApplication : Application(), Configuration.Provider {
         }
     }
 
-    override fun getWorkManagerConfiguration(): Configuration {
-        val myWorkerFactory = DelegatingWorkerFactory()
-        myWorkerFactory.addFactory(MyWorkerFactory(weatherRepository))
-        // Add here other factories that you may need in this application
+    override val workManagerConfiguration: Configuration
+        get() {
+            val myWorkerFactory = DelegatingWorkerFactory()
+            myWorkerFactory.addFactory(MyWorkerFactory(weatherRepository))
 
-        return Configuration.Builder()
-            .setMinimumLoggingLevel(Log.INFO)
-            .setWorkerFactory(myWorkerFactory)
-            .build()
-    }
+            return Configuration.Builder()
+                .setMinimumLoggingLevel(Log.INFO)
+                .setWorkerFactory(myWorkerFactory)
+                .build()
+        }
 }

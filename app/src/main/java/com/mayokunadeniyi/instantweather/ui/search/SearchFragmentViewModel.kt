@@ -92,7 +92,7 @@ class SearchFragmentViewModel @Inject constructor(private val repository: Weathe
                         _dataFetchState.postValue(false)
                     }
                 }
-                is Result.Error -> {
+                else -> {
                     _isLoading.value = false
                     _dataFetchState.value = false
                 }
