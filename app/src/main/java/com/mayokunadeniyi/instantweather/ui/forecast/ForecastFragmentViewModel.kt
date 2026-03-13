@@ -52,7 +52,7 @@ class ForecastFragmentViewModel @Inject constructor(
                         refreshForecastData(cityId)
                     }
                 }
-                is Result.Loading -> _isLoading.postValue(true)
+                else -> _isLoading.postValue(true)
             }
         }
     }

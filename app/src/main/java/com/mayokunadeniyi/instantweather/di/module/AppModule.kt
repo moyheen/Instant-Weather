@@ -6,7 +6,7 @@ import com.google.gson.Gson
 import com.mayokunadeniyi.instantweather.BuildConfig
 import com.mayokunadeniyi.instantweather.utils.LocationLiveData
 import com.mayokunadeniyi.instantweather.utils.SharedPreferenceHelper
-import com.readystatesoftware.chuck.ChuckInterceptor
+import com.chuckerteam.chucker.api.ChuckerInterceptor
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
@@ -106,7 +106,7 @@ class AppModule {
             }
             .readTimeout(60, TimeUnit.SECONDS)
         if (BuildConfig.DEBUG) {
-            okHttpClientBuilder.addInterceptor(ChuckInterceptor(context))
+            okHttpClientBuilder.addInterceptor(ChuckerInterceptor(context))
         }
         return retrofitBuilder.client(okHttpClientBuilder.build()).build()
     }

@@ -84,6 +84,7 @@ class WeatherRepositoryTest {
                         `is`(fakeNetworkWeather.networkWeatherDescriptions)
                     )
                 }
+                else -> org.junit.Assert.fail("Expected Result.Success")
             }
         }
 
@@ -115,6 +116,7 @@ class WeatherRepositoryTest {
                         `is`(fakeDbWeatherEntity.networkWeatherDescription)
                     )
                 }
+                else -> org.junit.Assert.fail("Expected Result.Success")
             }
         }
 
@@ -136,6 +138,7 @@ class WeatherRepositoryTest {
                 is Result.Error -> {
                     assertThat(response.exception, `is`(invalidDataException))
                 }
+                else -> org.junit.Assert.fail("Expected Result.Error")
             }
         }
 
@@ -155,6 +158,7 @@ class WeatherRepositoryTest {
                 is Result.Success -> {
                     assertThat(response.data, `is`(nullValue()))
                 }
+                else -> org.junit.Assert.fail("Expected Result.Success")
             }
         }
 
@@ -186,6 +190,7 @@ class WeatherRepositoryTest {
                         `is`(fakeNetworkWeatherForecast.networkWeatherDescription)
                     )
                 }
+                else -> org.junit.Assert.fail("Expected Result.Success")
             }
         }
 
@@ -217,6 +222,7 @@ class WeatherRepositoryTest {
                         `is`(fakeDbWeatherForecast.networkWeatherDescriptions)
                     )
                 }
+                else -> org.junit.Assert.fail("Expected Result.Success")
             }
         }
 
@@ -236,6 +242,7 @@ class WeatherRepositoryTest {
                 is Result.Success -> {
                     assertThat(response.data, `is`(nullValue()))
                 }
+                else -> org.junit.Assert.fail("Expected Result.Success")
             }
         }
 
@@ -264,6 +271,7 @@ class WeatherRepositoryTest {
                         `is`(fakeNetworkWeather.networkWeatherDescriptions)
                     )
                 }
+                else -> org.junit.Assert.fail("Expected Result.Success")
             }
         }
 
