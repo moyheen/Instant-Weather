@@ -61,13 +61,13 @@ class SearchFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.getSearchWeather(queryLocation)
+            systemUnderTest.onEvent(SearchUiEvent.GetSearchWeather(queryLocation))
 
             verify(repository, times(1)).getSearchWeather(queryLocation)
 
-            assertThat(systemUnderTest.weatherInfo.getOrAwaitValue(), `is`(fakeWeather))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(true))
+            assertThat(systemUnderTest.uiState.value.weatherInfo, `is`(fakeWeather))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(true))
         }
 
     @Test
@@ -79,13 +79,13 @@ class SearchFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.getSearchWeather(queryLocation)
+            systemUnderTest.onEvent(SearchUiEvent.GetSearchWeather(queryLocation))
 
             verify(repository, times(1)).getSearchWeather(queryLocation)
 
-            assertThat(systemUnderTest.weatherInfo.getOrAwaitValue(), `is`(nullValue()))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.weatherInfo, `is`(nullValue()))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
         }
 
     @Test
@@ -97,12 +97,12 @@ class SearchFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.getSearchWeather(queryLocation)
+            systemUnderTest.onEvent(SearchUiEvent.GetSearchWeather(queryLocation))
 
             verify(repository, times(1)).getSearchWeather(queryLocation)
 
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
         }
 
     // region helper methods

@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -26,6 +27,7 @@ import com.mayokunadeniyi.instantweather.utils.SharedPreferenceHelper
 import com.mayokunadeniyi.instantweather.utils.convertCelsiusToFahrenheit
 import com.mayokunadeniyi.instantweather.utils.observeOnce
 import com.mayokunadeniyi.instantweather.worker.UpdateWeatherWorker
+import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -62,7 +64,7 @@ class HomeFragment : BaseFragment() {
                     viewLifecycleOwner,
                     { location ->
                         if (location != null) {
-                            viewModel.getWeather(location)
+                            viewModel.onEvent(HomeUiEvent.GetWeather(location))
                             setupWorkManager()
                         }
                     }
@@ -118,39 +120,9 @@ class HomeFragment : BaseFragment() {
     }
 
     private fun observeViewModels() {
-        with(viewModel) {
-            weather.observe(viewLifecycleOwner) { weather ->
-                weather?.let {
-                    prefs.saveCityId(it.cityId)
-
-                    if (prefs.getSelectedTemperatureUnit() == activity?.resources?.getString(R.string.temp_unit_fahrenheit))
-                        it.networkWeatherCondition.temp =
-                            convertCelsiusToFahrenheit(it.networkWeatherCondition.temp)
-
-                    binding.weather = it
-                    binding.networkWeatherDescription = it.networkWeatherDescription.first()
-                }
-            }
-
-            dataFetchState.observe(viewLifecycleOwner) { state ->
-                when (state) {
-                    true -> {
-                        unHideViews()
-                        binding.errorText.visibility = View.GONE
-                    }
-                    false -> {
-                        hideViews()
-                        binding.apply {
-                            errorText.visibility = View.VISIBLE
-                            progressBar.visibility = View.GONE
-                            loadingText.visibility = View.GONE
-                        }
-                    }
-                }
-            }
-
-            isLoading.observe(viewLifecycleOwner) { state ->
-                when (state) {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                when (state.isLoading) {
                     true -> {
                         hideViews()
                         binding.apply {
@@ -165,6 +137,36 @@ class HomeFragment : BaseFragment() {
                         }
                     }
                 }
+
+                when (state.dataFetchState) {
+                    true -> {
+                        // The original logic only unhided views when dataFetchState=true explicitly.
+                        // However, we only unhide when there is weather data, but let's stick to original behavior
+                        if (!state.isLoading && state.weather != null){
+                             unHideViews()
+                        }
+                        binding.errorText.visibility = View.GONE
+                    }
+                    false -> {
+                        hideViews()
+                        binding.apply {
+                            errorText.visibility = View.VISIBLE
+                            progressBar.visibility = View.GONE
+                            loadingText.visibility = View.GONE
+                        }
+                    }
+                }
+
+                state.weather?.let {
+                    prefs.saveCityId(it.cityId)
+
+                    if (prefs.getSelectedTemperatureUnit() == activity?.resources?.getString(R.string.temp_unit_fahrenheit))
+                        it.networkWeatherCondition.temp =
+                            convertCelsiusToFahrenheit(it.networkWeatherCondition.temp)
+
+                    binding.weather = it
+                    binding.networkWeatherDescription = it.networkWeatherDescription.first()
+                }
             }
         }
     }
@@ -174,7 +176,7 @@ class HomeFragment : BaseFragment() {
             viewLifecycleOwner,
             { location ->
                 if (location != null) {
-                    viewModel.refreshWeather(location)
+                    viewModel.onEvent(HomeUiEvent.RefreshWeather(location))
                 } else {
                     hideViews()
                     binding.apply {

@@ -64,12 +64,12 @@ class HomeFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.getWeather(dummyLocation)
+            systemUnderTest.onEvent(HomeUiEvent.GetWeather(dummyLocation))
             verify(repository, times(1)).getWeather(dummyLocation, false)
 
-            assertThat(systemUnderTest.weather.getOrAwaitValue(), `is`(fakeWeather))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(true))
+            assertThat(systemUnderTest.uiState.value.weather, `is`(fakeWeather))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(true))
         }
 
     @Test
@@ -78,13 +78,13 @@ class HomeFragmentViewModelTest {
             `when`(repository.getWeather(dummyLocation, false)).thenReturn(Result.Success(null))
             `when`(repository.getWeather(dummyLocation, true)).thenReturn(Result.Success(null))
 
-            systemUnderTest.getWeather(dummyLocation)
+            systemUnderTest.onEvent(HomeUiEvent.GetWeather(dummyLocation))
             verify(repository, times(1)).getWeather(dummyLocation, false)
             verify(repository, times(1)).getWeather(dummyLocation, true)
 
-            assertThat(systemUnderTest.weather.getOrAwaitValue(), `is`(nullValue()))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.weather, `is`(nullValue()))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
         }
 
     @Test
@@ -97,12 +97,12 @@ class HomeFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.getWeather(dummyLocation)
+            systemUnderTest.onEvent(HomeUiEvent.GetWeather(dummyLocation))
             verify(repository, times(1)).getWeather(dummyLocation, false)
             verify(repository, times(1)).getWeather(dummyLocation, true)
 
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
         }
 
     @Test
@@ -114,12 +114,12 @@ class HomeFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.refreshWeather(dummyLocation)
+            systemUnderTest.onEvent(HomeUiEvent.RefreshWeather(dummyLocation))
             verify(repository, times(1)).getWeather(dummyLocation, true)
 
-            assertThat(systemUnderTest.weather.getOrAwaitValue(), `is`(fakeWeather))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(true))
+            assertThat(systemUnderTest.uiState.value.weather, `is`(fakeWeather))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(true))
         }
 
     @Test
@@ -127,12 +127,12 @@ class HomeFragmentViewModelTest {
         mainCoroutineRule.runBlockingTest {
             `when`(repository.getWeather(dummyLocation, true)).thenReturn(Result.Success(null))
 
-            systemUnderTest.refreshWeather(dummyLocation)
+            systemUnderTest.onEvent(HomeUiEvent.RefreshWeather(dummyLocation))
             verify(repository, times(1)).getWeather(dummyLocation, true)
 
-            assertThat(systemUnderTest.weather.getOrAwaitValue(), `is`(nullValue()))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.weather, `is`(nullValue()))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
         }
 
     @Test
@@ -144,11 +144,11 @@ class HomeFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.refreshWeather(dummyLocation)
+            systemUnderTest.onEvent(HomeUiEvent.RefreshWeather(dummyLocation))
             verify(repository, times(1)).getWeather(dummyLocation, true)
 
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
         }
 
     // region helper methods

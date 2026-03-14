@@ -69,15 +69,15 @@ class ForecastFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.getWeatherForecast(cityId)
+            systemUnderTest.onEvent(ForecastUiEvent.GetWeatherForecast(cityId))
             verify(repository, times(1)).getForecastWeather(cityId, false)
 
             assertThat(
-                systemUnderTest.forecast.getOrAwaitValue(),
+                systemUnderTest.uiState.value.forecast,
                 `is`(listOf(fakeWeatherForecast))
             )
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(true))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(true))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
         }
 
     @Test
@@ -86,13 +86,13 @@ class ForecastFragmentViewModelTest {
             `when`(repository.getForecastWeather(cityId, false)).thenReturn(Result.Success(null))
             `when`(repository.getForecastWeather(cityId, true)).thenReturn(Result.Success(null))
 
-            systemUnderTest.getWeatherForecast(cityId)
+            systemUnderTest.onEvent(ForecastUiEvent.GetWeatherForecast(cityId))
             verify(repository, times(1)).getForecastWeather(cityId, false)
             verify(repository, times(1)).getForecastWeather(cityId, true)
 
-            assertThat(systemUnderTest.forecast.getOrAwaitValue(), `is`(nullValue()))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.forecast, `is`(nullValue()))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
         }
 
     @Test
@@ -105,12 +105,12 @@ class ForecastFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.getWeatherForecast(cityId)
+            systemUnderTest.onEvent(ForecastUiEvent.GetWeatherForecast(cityId))
             verify(repository, times(1)).getForecastWeather(cityId, false)
             verify(repository, times(1)).getForecastWeather(cityId, true)
 
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
         }
 
     @Test
@@ -124,15 +124,15 @@ class ForecastFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.refreshForecastData(cityId)
+            systemUnderTest.onEvent(ForecastUiEvent.RefreshForecastData(cityId))
             verify(repository, times(1)).getForecastWeather(cityId, true)
 
             assertThat(
-                systemUnderTest.forecast.getOrAwaitValue(),
+                systemUnderTest.uiState.value.forecast,
                 `is`(listOf(fakeWeatherForecast))
             )
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(true))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(true))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
         }
 
     @Test
@@ -144,11 +144,11 @@ class ForecastFragmentViewModelTest {
                 )
             )
 
-            systemUnderTest.refreshForecastData(cityId)
+            systemUnderTest.onEvent(ForecastUiEvent.RefreshForecastData(cityId))
             verify(repository, times(1)).getForecastWeather(cityId, true)
 
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
         }
 
     @Test
@@ -156,20 +156,20 @@ class ForecastFragmentViewModelTest {
         mainCoroutineRule.runBlockingTest {
             `when`(repository.getForecastWeather(cityId, true)).thenReturn(Result.Success(null))
 
-            systemUnderTest.refreshForecastData(cityId)
+            systemUnderTest.onEvent(ForecastUiEvent.RefreshForecastData(cityId))
             verify(repository, times(1)).getForecastWeather(cityId, true)
 
-            assertThat(systemUnderTest.forecast.getOrAwaitValue(), `is`(nullValue()))
-            assertThat(systemUnderTest.dataFetchState.getOrAwaitValue(), `is`(false))
-            assertThat(systemUnderTest.isLoading.getOrAwaitValue(), `is`(false))
+            assertThat(systemUnderTest.uiState.value.forecast, `is`(nullValue()))
+            assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
+            assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
         }
 
     @Test
     fun `assert that updateWeatherForecast returns a correctly filtered list`() = mainCoroutineRule.runBlockingTest {
         val day = Day(2022, 0, 9)
 
-        systemUnderTest.updateWeatherForecast(day, fakeWeatherForecastList)
+        systemUnderTest.onEvent(ForecastUiEvent.UpdateWeatherForecast(day, fakeWeatherForecastList))
 
-        assertThat(systemUnderTest.filteredForecast.getOrAwaitValue().size, `is`(3))
+        assertThat(systemUnderTest.uiState.value.filteredForecast.size, `is`(3))
     }
 }

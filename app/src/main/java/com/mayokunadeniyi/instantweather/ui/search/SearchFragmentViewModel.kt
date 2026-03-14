@@ -1,7 +1,6 @@
 package com.mayokunadeniyi.instantweather.ui.search
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.LivePagedListBuilder
@@ -20,7 +19,10 @@ import com.mayokunadeniyi.instantweather.data.model.SearchResult
 import com.mayokunadeniyi.instantweather.data.model.Weather
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
 import com.mayokunadeniyi.instantweather.utils.Result
-import com.mayokunadeniyi.instantweather.utils.asLiveData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonPrimitive
 import timber.log.Timber
@@ -29,6 +31,16 @@ import javax.inject.Inject
 /**
  * Created by Mayokun Adeniyi on 27/04/2020.
  */
+
+data class SearchUiState(
+    val isLoading: Boolean = false,
+    val weatherInfo: Weather? = null,
+    val dataFetchState: Boolean = true
+)
+
+sealed class SearchUiEvent {
+    data class GetSearchWeather(val name: String) : SearchUiEvent()
+}
 
 class SearchFragmentViewModel @Inject constructor(private val repository: WeatherRepository) :
     ViewModel() {
@@ -64,37 +76,44 @@ class SearchFragmentViewModel @Inject constructor(private val repository: Weathe
         connection += stats
     }
 
-    private val _weatherInfo = MutableLiveData<Weather?>()
-    val weatherInfo = _weatherInfo.asLiveData()
+    private val _uiState = MutableStateFlow(SearchUiState())
+    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading = _isLoading.asLiveData()
-
-    private val _dataFetchState = MutableLiveData<Boolean>()
-    val dataFetchState = _dataFetchState.asLiveData()
+    fun onEvent(event: SearchUiEvent) {
+        when (event) {
+            is SearchUiEvent.GetSearchWeather -> getSearchWeather(event.name)
+        }
+    }
 
     /**
      * Gets the [Weather] information for the user selected location[name]
      * @param name value of the location whose [Weather] data is to be fetched.
      */
-    fun getSearchWeather(name: String) {
-        _isLoading.postValue(true)
+    private fun getSearchWeather(name: String) {
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             when (val result = repository.getSearchWeather(name)) {
                 is Result.Success -> {
-                    _isLoading.value = false
                     if (result.data != null) {
                         Timber.i("Mayokun Result ${result.data}")
-                        _dataFetchState.value = true
-                        _weatherInfo.postValue(result.data)
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            dataFetchState = true,
+                            weatherInfo = result.data
+                        ) }
                     } else {
-                        _weatherInfo.postValue(null)
-                        _dataFetchState.postValue(false)
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            dataFetchState = false,
+                            weatherInfo = null
+                        ) }
                     }
                 }
                 else -> {
-                    _isLoading.value = false
-                    _dataFetchState.value = false
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        dataFetchState = false
+                    ) }
                 }
             }
         }

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.algolia.instantsearch.core.connection.ConnectionHandler
 import com.algolia.instantsearch.helper.android.item.StatsTextView
@@ -23,6 +24,7 @@ import com.mayokunadeniyi.instantweather.ui.BaseFragment
 import com.mayokunadeniyi.instantweather.utils.BaseBottomSheetDialog
 import com.mayokunadeniyi.instantweather.utils.convertKelvinToCelsius
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SearchFragment : BaseFragment(), SearchResultAdapter.OnItemClickedListener {
@@ -57,7 +59,7 @@ class SearchFragment : BaseFragment(), SearchResultAdapter.OnItemClickedListener
         searchBoxView.onQuerySubmitted = {
             binding.zeroHits.visibility = View.GONE
             if (it != null && it.isNotEmpty()) {
-                viewModel.getSearchWeather(it)
+                viewModel.onEvent(SearchUiEvent.GetSearchWeather(it))
             }
         }
 
@@ -71,28 +73,25 @@ class SearchFragment : BaseFragment(), SearchResultAdapter.OnItemClickedListener
         }
 
         with(viewModel) {
-
             locations.observe(viewLifecycleOwner) { hits ->
                 searchResultAdapter.submitList(hits)
                 binding.zeroHits.isVisible = hits.size == 0
             }
+        }
 
-            weatherInfo.observe(viewLifecycleOwner) { weather ->
-                weather?.let {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                state.weatherInfo?.let {
                     val formattedWeather = it.apply {
                         this.networkWeatherCondition.temp =
                             convertKelvinToCelsius(this.networkWeatherCondition.temp)
                     }
                     displayWeatherResult(formattedWeather)
                 }
-            }
 
-            isLoading.observe(viewLifecycleOwner) { state ->
-                binding.searchWeatherLoader.isVisible = state
-            }
+                binding.searchWeatherLoader.isVisible = state.isLoading
 
-            dataFetchState.observe(viewLifecycleOwner) { state ->
-                if (!state) {
+                if (!state.dataFetchState && !state.isLoading) {
                     Snackbar.make(
                         requireView(),
                         "An error occurred! Please try again.",
@@ -124,6 +123,6 @@ class SearchFragment : BaseFragment(), SearchResultAdapter.OnItemClickedListener
 
     override fun onSearchResultClicked(searchResult: SearchResult) {
         searchBoxView.setText(searchResult.name)
-        viewModel.getSearchWeather(searchResult.name)
+        viewModel.onEvent(SearchUiEvent.GetSearchWeather(searchResult.name))
     }
 }

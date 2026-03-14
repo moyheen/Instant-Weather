@@ -7,10 +7,13 @@ import com.mayokunadeniyi.instantweather.data.model.WeatherForecast
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
 import com.mayokunadeniyi.instantweather.di.scope.DefaultDispatcher
 import com.mayokunadeniyi.instantweather.utils.Result
-import com.mayokunadeniyi.instantweather.utils.asLiveData
 import com.mayokunadeniyi.instantweather.utils.convertKelvinToCelsius
 import com.mayokunadeniyi.instantweather.utils.formatDate
 import com.shrikanthravi.collapsiblecalendarview.data.Day
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -21,75 +24,81 @@ import javax.inject.Inject
  * Created by Mayokun Adeniyi on 28/02/2020.
  */
 
+data class ForecastUiState(
+    val isLoading: Boolean = false,
+    val forecast: List<WeatherForecast>? = null,
+    val filteredForecast: List<WeatherForecast> = emptyList(),
+    val dataFetchState: Boolean = true
+)
+
+sealed class ForecastUiEvent {
+    data class GetWeatherForecast(val cityId: Int?) : ForecastUiEvent()
+    data class RefreshForecastData(val cityId: Int?) : ForecastUiEvent()
+    data class UpdateWeatherForecast(val selectedDay: Day, val list: List<WeatherForecast>) : ForecastUiEvent()
+}
+
 class ForecastFragmentViewModel @Inject constructor(
     private val repository: WeatherRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
-    private val _forecast = MutableLiveData<List<WeatherForecast>?>()
-    val forecast = _forecast.asLiveData()
+    private val _uiState = MutableStateFlow(ForecastUiState())
+    val uiState: StateFlow<ForecastUiState> = _uiState.asStateFlow()
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading = _isLoading.asLiveData()
+    fun onEvent(event: ForecastUiEvent) {
+        when (event) {
+            is ForecastUiEvent.GetWeatherForecast -> getWeatherForecast(event.cityId)
+            is ForecastUiEvent.RefreshForecastData -> refreshForecastData(event.cityId)
+            is ForecastUiEvent.UpdateWeatherForecast -> updateWeatherForecast(event.selectedDay, event.list)
+        }
+    }
 
-    private val _dataFetchState = MutableLiveData<Boolean>()
-    val dataFetchState = _dataFetchState.asLiveData()
-
-    private val _filteredForecast = MutableLiveData<List<WeatherForecast>>()
-    val filteredForecast = _filteredForecast.asLiveData()
-
-    fun getWeatherForecast(cityId: Int?) {
-        _isLoading.value = true
+    private fun getWeatherForecast(cityId: Int?) {
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             when (val result = repository.getForecastWeather(cityId!!, false)) {
                 is Result.Success -> {
-                    _isLoading.postValue(false)
                     if (!result.data.isNullOrEmpty()) {
                         val forecasts = result.data
-                        _dataFetchState.value = true
-                        _forecast.value = forecasts
+                        _uiState.update { it.copy(isLoading = false, dataFetchState = true, forecast = forecasts) }
                     } else {
                         refreshForecastData(cityId)
                     }
                 }
-                else -> _isLoading.postValue(true)
+                else -> _uiState.update { it.copy(isLoading = true) }
             }
         }
     }
 
-    fun refreshForecastData(cityId: Int?) {
-        _isLoading.value = true
+    private fun refreshForecastData(cityId: Int?) {
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             when (val result = repository.getForecastWeather(cityId!!, true)) {
                 is Result.Success -> {
-                    _isLoading.postValue(false)
                     if (result.data != null) {
                         val forecast = result.data.onEach { forecast ->
                             forecast.networkWeatherCondition.temp =
                                 convertKelvinToCelsius(forecast.networkWeatherCondition.temp)
                             forecast.date = forecast.date.formatDate()
                         }
-                        _forecast.postValue(forecast)
-                        _dataFetchState.postValue(true)
+                        _uiState.update { it.copy(isLoading = false, dataFetchState = true, forecast = forecast) }
                         repository.deleteForecastData()
                         repository.storeForecastData(forecast)
                     } else {
-                        _dataFetchState.postValue(false)
-                        _forecast.postValue(null)
+                        _uiState.update { it.copy(isLoading = false, dataFetchState = false, forecast = null) }
                     }
                 }
 
                 is Result.Error -> {
-                    _dataFetchState.value = false
-                    _isLoading.value = false
+                    _uiState.update { it.copy(isLoading = false, dataFetchState = false) }
                 }
 
-                is Result.Loading -> _isLoading.postValue(true)
+                is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
             }
         }
     }
 
-    fun updateWeatherForecast(selectedDay: Day, list: List<WeatherForecast>) {
+    private fun updateWeatherForecast(selectedDay: Day, list: List<WeatherForecast>) {
         viewModelScope.launch(defaultDispatcher) {
             selectedDay.let {
                 val checkerDay = it.day
@@ -107,7 +116,7 @@ class ForecastFragmentViewModel @Inject constructor(
                         1900
                     ) == checkerYear
                 }
-                _filteredForecast.postValue(filteredList)
+                _uiState.update { it.copy(filteredForecast = filteredList) }
             }
         }
     }
