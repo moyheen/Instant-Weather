@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.mayokunadeniyi.instantweather.R
 import com.mayokunadeniyi.instantweather.databinding.FragmentForecastBinding
 import com.mayokunadeniyi.instantweather.ui.BaseFragment
@@ -14,6 +15,7 @@ import com.mayokunadeniyi.instantweather.utils.SharedPreferenceHelper
 import com.mayokunadeniyi.instantweather.utils.convertCelsiusToFahrenheit
 import com.shrikanthravi.collapsiblecalendarview.widget.CollapsibleCalendar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -42,36 +44,32 @@ class ForecastFragment : BaseFragment(), ForecastOnClickListener {
 
         setupCalendar()
         binding.forecastRecyclerview.adapter = weatherForecastAdapter
-        viewModel.getWeatherForecast(prefs.getCityId())
+        viewModel.onEvent(ForecastUiEvent.GetWeatherForecast(prefs.getCityId()))
         observeMoreViewModels()
     }
 
     private fun observeMoreViewModels() {
-        with(viewModel) {
-            forecast.observe(viewLifecycleOwner) { weatherForecast ->
-                weatherForecast?.let { list ->
-                    weatherForecast.forEach {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                state.forecast?.let { list ->
+                    list.forEach {
                         if (prefs.getSelectedTemperatureUnit() == requireActivity().resources.getString(R.string.temp_unit_fahrenheit))
                             it.networkWeatherCondition.temp = convertCelsiusToFahrenheit(it.networkWeatherCondition.temp)
                     }
                     weatherForecastAdapter.submitList(list)
                 }
-            }
 
-            dataFetchState.observe(viewLifecycleOwner) { state ->
                 binding.apply {
-                    forecastRecyclerview.isVisible = state
-                    forecastErrorText?.isVisible = !state
+                    forecastRecyclerview.isVisible = state.dataFetchState
+                    forecastErrorText?.isVisible = !state.dataFetchState
                 }
-            }
 
-            isLoading.observe(viewLifecycleOwner) { state ->
-                binding.forecastProgressBar.isVisible = state
-            }
+                binding.forecastProgressBar.isVisible = state.isLoading
 
-            filteredForecast.observe(viewLifecycleOwner) {
-                weatherForecastAdapter.submitList(it)
-                binding.emptyListText.isVisible = it.isEmpty()
+                if (state.filteredForecast.isNotEmpty()) {
+                    weatherForecastAdapter.submitList(state.filteredForecast)
+                }
+                binding.emptyListText.isVisible = state.filteredForecast.isEmpty() && state.forecast != null
             }
         }
 
@@ -84,7 +82,7 @@ class ForecastFragment : BaseFragment(), ForecastOnClickListener {
         binding.forecastErrorText?.visibility = View.GONE
         binding.forecastProgressBar.visibility = View.VISIBLE
         binding.forecastRecyclerview.visibility = View.GONE
-        viewModel.refreshForecastData(prefs.getCityId())
+        viewModel.onEvent(ForecastUiEvent.RefreshForecastData(prefs.getCityId()))
         binding.forecastSwipeRefresh.isRefreshing = false
     }
 
@@ -103,8 +101,8 @@ class ForecastFragment : BaseFragment(), ForecastOnClickListener {
                 binding.emptyListText.visibility = View.GONE
                 runCatching {
                     val selectedDay = binding.calendarView.selectedDay
-                    val list = viewModel.forecast.value
-                    viewModel.updateWeatherForecast(requireNotNull(selectedDay), requireNotNull(list))
+                    val list = viewModel.uiState.value.forecast
+                    viewModel.onEvent(ForecastUiEvent.UpdateWeatherForecast(requireNotNull(selectedDay), requireNotNull(list)))
                 }.onFailure {
                     Timber.d(it)
                 }

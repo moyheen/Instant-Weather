@@ -9,20 +9,34 @@ import com.mayokunadeniyi.instantweather.data.model.Weather
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
 import com.mayokunadeniyi.instantweather.utils.LocationLiveData
 import com.mayokunadeniyi.instantweather.utils.Result
-import com.mayokunadeniyi.instantweather.utils.asLiveData
 import com.mayokunadeniyi.instantweather.utils.convertKelvinToCelsius
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
+
+data class HomeUiState(
+    val isLoading: Boolean = false,
+    val weather: Weather? = null,
+    val dataFetchState: Boolean = true,
+    val error: String? = null
+)
+
+sealed class HomeUiEvent {
+    data class GetWeather(val location: LocationModel) : HomeUiEvent()
+    data class RefreshWeather(val location: LocationModel) : HomeUiEvent()
+}
 
 /**
  * Created by Mayokun Adeniyi on 2020-01-25.
  */
 class HomeFragmentViewModel @Inject constructor(
     private val repository: WeatherRepository
-) :
-    ViewModel() {
+) : ViewModel() {
 
     @Inject
     lateinit var locationLiveData: LocationLiveData
@@ -31,44 +45,49 @@ class HomeFragmentViewModel @Inject constructor(
         currentSystemTime()
     }
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading = _isLoading.asLiveData()
-
-    private val _dataFetchState = MutableLiveData<Boolean>()
-    val dataFetchState = _dataFetchState.asLiveData()
-
-    private val _weather = MutableLiveData<Weather?>()
-    val weather = _weather.asLiveData()
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     val time = currentSystemTime()
 
     fun fetchLocationLiveData() = locationLiveData
+
+    fun onEvent(event: HomeUiEvent) {
+        when (event) {
+            is HomeUiEvent.GetWeather -> getWeather(event.location)
+            is HomeUiEvent.RefreshWeather -> refreshWeather(event.location)
+        }
+    }
 
     /**
      *This attempts to get the [Weather] from the local data source,
      * if the result is null, it gets from the remote source.
      * @see refreshWeather
      */
-    fun getWeather(location: LocationModel) {
-        _isLoading.postValue(true)
+    private fun getWeather(location: LocationModel) {
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             when (val result = repository.getWeather(location, false)) {
                 is Result.Success -> {
-                    _isLoading.value = false
                     if (result.data != null) {
                         val weather = result.data
-                        _dataFetchState.value = true
-                        _weather.value = weather
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            dataFetchState = true,
+                            weather = weather
+                        ) }
                     } else {
                         refreshWeather(location)
                     }
                 }
                 is Result.Error -> {
-                    _isLoading.value = false
-                    _dataFetchState.value = false
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        dataFetchState = false
+                    ) }
                 }
 
-                is Result.Loading -> _isLoading.postValue(true)
+                is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
             }
         }
     }
@@ -85,31 +104,38 @@ class HomeFragmentViewModel @Inject constructor(
      * This is called when the user swipes down to refresh.
      * This enables the [Weather] for the current [location] to be received.
      */
-    fun refreshWeather(location: LocationModel) {
-        _isLoading.value = true
+    private fun refreshWeather(location: LocationModel) {
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             when (val result = repository.getWeather(location, true)) {
                 is Result.Success -> {
-                    _isLoading.value = false
                     if (result.data != null) {
                         val weather = result.data.apply {
                             this.networkWeatherCondition.temp = convertKelvinToCelsius(this.networkWeatherCondition.temp)
                         }
-                        _dataFetchState.value = true
-                        _weather.value = weather
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            dataFetchState = true,
+                            weather = weather
+                        ) }
 
                         repository.deleteWeatherData()
                         repository.storeWeatherData(weather)
                     } else {
-                        _weather.postValue(null)
-                        _dataFetchState.postValue(false)
+                        _uiState.update { it.copy(
+                            isLoading = false,
+                            dataFetchState = false,
+                            weather = null
+                        ) }
                     }
                 }
                 is Result.Error -> {
-                    _isLoading.value = false
-                    _dataFetchState.value = false
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        dataFetchState = false
+                    ) }
                 }
-                is Result.Loading -> _isLoading.postValue(true)
+                is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
             }
         }
     }
