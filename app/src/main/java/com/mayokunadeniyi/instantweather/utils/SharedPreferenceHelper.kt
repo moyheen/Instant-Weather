@@ -32,12 +32,11 @@ class SharedPreferenceHelper {
          */
         fun getInstance(context: Context): SharedPreferenceHelper {
             synchronized(this) {
-                val _instance = instance
-                if (_instance == null) {
+                if (instance == null) {
                     prefs = PreferenceManager.getDefaultSharedPreferences(context)
-                    instance = _instance
+                    instance = SharedPreferenceHelper()
                 }
-                return SharedPreferenceHelper()
+                return instance!!
             }
         }
     }
@@ -99,19 +98,46 @@ class SharedPreferenceHelper {
      * This function gets the value of the cache duration the user set in the
      * Settings Fragment.
      */
-    fun getUserSetCacheDuration() = prefs?.getString("cache_key", "0")
+    fun getUserSetCacheDuration() = prefs?.getString("cache_key", "900")
+
+    /**
+     * This function saves the cache duration.
+     */
+    fun saveCacheDuration(duration: String) {
+        prefs?.edit(commit = true) {
+            putString("cache_key", duration)
+        }
+    }
 
     /**
      * This function gets the value of the app theme the user set in the
      * Settings Fragment.
      */
-    fun getSelectedThemePref() = prefs?.getString("theme_key", "")
+    fun getSelectedThemePref() = prefs?.getString("theme_key", "System")
+
+    /**
+     * This function saves the selected theme.
+     */
+    fun saveThemePref(theme: String) {
+        prefs?.edit(commit = true) {
+            putString("theme_key", theme)
+        }
+    }
 
     /**
      * This function gets the value of the temperature unit the user set in the
      * Settings Fragment.
      */
-    fun getSelectedTemperatureUnit() = prefs?.getString("unit_key", "")
+    fun getSelectedTemperatureUnit() = prefs?.getString("unit_key", "Celsius/°C")
+
+    /**
+     * This function saves the selected temperature unit.
+     */
+    fun saveTemperatureUnit(unit: String) {
+        prefs?.edit(commit = true) {
+            putString("unit_key", unit)
+        }
+    }
 
     /**
      * This function saves a [LocationModel]
@@ -127,9 +153,9 @@ class SharedPreferenceHelper {
     /**
      * This function gets the value of the saved [LocationModel]
      */
-    fun getLocation(): LocationModel {
+    fun getLocation(): LocationModel? {
         val gson = Gson()
-        val json = prefs?.getString(LOCATION, null)
+        val json = prefs?.getString(LOCATION, null) ?: return null
         return gson.fromJson(json, LocationModel::class.java)
     }
 }

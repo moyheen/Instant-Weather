@@ -1,7 +1,7 @@
 package com.mayokunadeniyi.instantweather.data.model
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * Created by Mayokun Adeniyi on 16/03/2020.

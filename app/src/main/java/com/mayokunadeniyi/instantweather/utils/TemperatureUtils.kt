@@ -14,13 +14,13 @@ import java.text.DecimalFormat
 fun convertKelvinToCelsius(number: Number): Double {
     return DecimalFormat().run {
         applyPattern(".##")
-        parse(format(number.toDouble().minus(273))).toDouble()
+        parse(format(number?.toDouble()?.minus(273)))?.toDouble() ?: 0.0
     }
 }
 
 fun convertCelsiusToFahrenheit(celsius: Double): Double {
     return DecimalFormat().run {
         applyPattern(".##")
-        parse(format(celsius.times(1.8).plus(32))).toDouble()
+        parse(format(celsius.times(1.8).plus(32)))?.toDouble() ?: 0.0
     }
 }

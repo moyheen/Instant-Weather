@@ -21,7 +21,7 @@ class UpdateWeatherWorker(
     private val sharedPrefs = SharedPreferenceHelper.getInstance(context)
 
     override suspend fun doWork(): Result {
-        val location = sharedPrefs.getLocation()
+        val location = sharedPrefs.getLocation() ?: return Result.failure()
         return when (val result = repository.getWeather(location, true)) {
             is Success -> {
                 if (result.data != null) {
