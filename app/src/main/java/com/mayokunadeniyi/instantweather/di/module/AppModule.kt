@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.google.gson.Gson
 import com.mayokunadeniyi.instantweather.BuildConfig
-import com.mayokunadeniyi.instantweather.utils.LocationLiveData
+import com.mayokunadeniyi.instantweather.utils.LocationManager
 import com.mayokunadeniyi.instantweather.utils.SharedPreferenceHelper
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import dagger.Lazy
@@ -42,8 +42,8 @@ class AppModule {
 
     @Provides
     @Singleton
-    fun provideLocationLiveData(context: Context): LocationLiveData {
-        return LocationLiveData(context)
+    fun provideLocationManager(context: Context): LocationManager {
+        return LocationManager(context)
     }
 
     @Provides

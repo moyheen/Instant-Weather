@@ -1,23 +1,20 @@
 package com.mayokunadeniyi.instantweather.ui.home
 
 import android.annotation.SuppressLint
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mayokunadeniyi.instantweather.data.model.LocationModel
 import com.mayokunadeniyi.instantweather.data.model.Weather
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
-import com.mayokunadeniyi.instantweather.utils.LocationLiveData
+import com.mayokunadeniyi.instantweather.utils.LocationManager
 import com.mayokunadeniyi.instantweather.utils.Result
 import com.mayokunadeniyi.instantweather.utils.convertKelvinToCelsius
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
+import dagger.hilt.android.lifecycle.HiltViewModel
 
 data class HomeUiState(
     val isLoading: Boolean = false,
@@ -34,23 +31,23 @@ sealed class HomeUiEvent {
 /**
  * Created by Mayokun Adeniyi on 2020-01-25.
  */
-class HomeFragmentViewModel @Inject constructor(
-    private val repository: WeatherRepository
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val repository: WeatherRepository,
+    private val locationManager: LocationManager
 ) : ViewModel() {
-
-    @Inject
-    lateinit var locationLiveData: LocationLiveData
-
-    init {
-        currentSystemTime()
-    }
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     val time = currentSystemTime()
-
-    fun fetchLocationLiveData() = locationLiveData
+    
+    val locationUpdates: StateFlow<LocationModel?> = locationManager.getLocationUpdates()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
     fun onEvent(event: HomeUiEvent) {
         when (event) {
@@ -59,11 +56,17 @@ class HomeFragmentViewModel @Inject constructor(
         }
     }
 
-    /**
-     *This attempts to get the [Weather] from the local data source,
-     * if the result is null, it gets from the remote source.
-     * @see refreshWeather
-     */
+    fun refreshLocation() {
+        locationManager.getLastKnownLocation { loc ->
+            if (loc != null) {
+                getWeather(loc)
+            } else {
+                _uiState.update { it.copy(isLoading = false, dataFetchState = false) }
+            }
+        }
+    }
+
+
     private fun getWeather(location: LocationModel) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
@@ -100,10 +103,6 @@ class HomeFragmentViewModel @Inject constructor(
         return dateFormat.format(date)
     }
 
-    /**
-     * This is called when the user swipes down to refresh.
-     * This enables the [Weather] for the current [location] to be received.
-     */
     private fun refreshWeather(location: LocationModel) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {

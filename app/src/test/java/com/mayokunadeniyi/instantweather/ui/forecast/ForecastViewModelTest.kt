@@ -7,7 +7,6 @@ import com.mayokunadeniyi.instantweather.cityId
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
 import com.mayokunadeniyi.instantweather.fakeWeatherForecast
 import com.mayokunadeniyi.instantweather.fakeWeatherForecastList
-import com.mayokunadeniyi.instantweather.getOrAwaitValue
 import com.mayokunadeniyi.instantweather.invalidDataException
 import com.mayokunadeniyi.instantweather.utils.Result
 import com.shrikanthravi.collapsiblecalendarview.data.Day
@@ -31,18 +30,12 @@ import org.mockito.junit.MockitoJUnitRunner
  */
 @RunWith(MockitoJUnitRunner::class)
 @ExperimentalCoroutinesApi
-class ForecastFragmentViewModelTest {
+class ForecastViewModelTest {
 
-    //region constants
-
-    //endregion constants
-
-    //region helper fields
     @Mock
     private lateinit var repository: WeatherRepository
-    //endregion helper fields
 
-    private lateinit var systemUnderTest: ForecastFragmentViewModel
+    private lateinit var systemUnderTest: ForecastViewModel
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -55,7 +48,7 @@ class ForecastFragmentViewModelTest {
 
     @Before
     fun setUp() {
-        systemUnderTest = ForecastFragmentViewModel(repository, coroutineTestRule.dispatcher)
+        systemUnderTest = ForecastViewModel(repository, coroutineTestRule.dispatcher)
     }
 
     @Test
