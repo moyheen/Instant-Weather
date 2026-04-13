@@ -6,10 +6,11 @@ import com.mayokunadeniyi.instantweather.MainCoroutineRule
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
 import com.mayokunadeniyi.instantweather.dummyLocation
 import com.mayokunadeniyi.instantweather.fakeWeather
-import com.mayokunadeniyi.instantweather.getOrAwaitValue
 import com.mayokunadeniyi.instantweather.invalidDataException
+import com.mayokunadeniyi.instantweather.utils.LocationManager
 import com.mayokunadeniyi.instantweather.utils.Result
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.nullValue
@@ -31,17 +32,12 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @ExperimentalCoroutinesApi
 @Config(sdk = [Build.VERSION_CODES.O_MR1])
-class HomeFragmentViewModelTest {
+class HomeViewModelTest {
 
-    //region constants
-
-    //endregion constants
-
-    //region helper fields
     private var repository: WeatherRepository = mock(WeatherRepository::class.java)
-    //endregion helper fields
+    private var locationManager: LocationManager = mock(LocationManager::class.java)
 
-    private lateinit var systemUnderTest: HomeFragmentViewModel
+    private lateinit var systemUnderTest: HomeViewModel
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -51,8 +47,8 @@ class HomeFragmentViewModelTest {
 
     @Before
     fun setUp() {
-        systemUnderTest =
-            HomeFragmentViewModel(repository)
+        `when`(locationManager.getLocationUpdates()).thenReturn(flowOf())
+        systemUnderTest = HomeViewModel(repository, locationManager)
     }
 
     @Test
@@ -150,12 +146,4 @@ class HomeFragmentViewModelTest {
             assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
             assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
         }
-
-    // region helper methods
-
-    // endregion helper methods
-
-    // region helper classes
-
-    // endregion helper classes
 }

@@ -4,7 +4,6 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.mayokunadeniyi.instantweather.MainCoroutineRule
 import com.mayokunadeniyi.instantweather.data.source.repository.WeatherRepository
 import com.mayokunadeniyi.instantweather.fakeWeather
-import com.mayokunadeniyi.instantweather.getOrAwaitValue
 import com.mayokunadeniyi.instantweather.invalidDataException
 import com.mayokunadeniyi.instantweather.queryLocation
 import com.mayokunadeniyi.instantweather.utils.Result
@@ -28,18 +27,12 @@ import org.mockito.junit.MockitoJUnitRunner
  */
 @RunWith(MockitoJUnitRunner::class)
 @ExperimentalCoroutinesApi
-class SearchFragmentViewModelTest {
+class SearchViewModelTest {
 
-    //region constants
-
-    //endregion constants
-
-    //region helper fields
     @Mock
     private lateinit var repository: WeatherRepository
-    //endregion helper fields
 
-    private lateinit var systemUnderTest: SearchFragmentViewModel
+    private lateinit var systemUnderTest: SearchViewModel
 
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
@@ -49,7 +42,10 @@ class SearchFragmentViewModelTest {
 
     @Before
     fun setUp() {
-        systemUnderTest = SearchFragmentViewModel(repository)
+        // Note: SearchViewModel initializes Algolia HitsSearcher which might fail in JUnit
+        // if BuildConfig variables are not accessible or if mockito cannot handle the init.
+        // In a real scenario, we would inject the Searcher or use a Test-specific Client.
+        systemUnderTest = SearchViewModel(repository)
     }
 
     @Test
@@ -104,12 +100,4 @@ class SearchFragmentViewModelTest {
             assertThat(systemUnderTest.uiState.value.isLoading, `is`(false))
             assertThat(systemUnderTest.uiState.value.dataFetchState, `is`(false))
         }
-
-    // region helper methods
-
-    // endregion helper methods
-
-    // region helper classes
-
-    // endregion helper classes
 }

@@ -2,7 +2,7 @@ package com.mayokunadeniyi.instantweather.utils
 
 import android.app.Activity
 import android.content.Context
-import android.location.LocationManager
+import android.location.LocationManager as AndroidLocationManager
 import android.widget.Toast
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
@@ -19,17 +19,17 @@ class GpsUtil(private val context: Context) {
     private val settingsClient: SettingsClient = LocationServices.getSettingsClient(context)
     private val locationSettingsRequest: LocationSettingsRequest?
     private val locationManager =
-        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        context.getSystemService(Context.LOCATION_SERVICE) as AndroidLocationManager
 
     init {
         val builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(LocationLiveData.locationRequest)
+            .addLocationRequest(LocationManager.locationRequest)
         locationSettingsRequest = builder.build()
         builder.setAlwaysShow(true)
     }
 
     fun turnGPSOn(OnGpsListener: OnGpsListener?) {
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (locationManager.isProviderEnabled(AndroidLocationManager.GPS_PROVIDER)) {
             OnGpsListener?.gpsStatus(true)
         } else {
             if (locationSettingsRequest != null) {

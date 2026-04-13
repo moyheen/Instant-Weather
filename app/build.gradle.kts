@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.safeargs)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -100,9 +101,12 @@ android {
     }
 
     buildFeatures {
-        dataBinding = true
-        viewBinding = true
         buildConfig = true
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.9"
     }
 
     testOptions {
@@ -144,18 +148,15 @@ dependencies {
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.core.splashscreen)
 
     // Lifecycle
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.common.java8)
 
     // UI & Views
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.google.material)
     implementation(libs.androidx.viewpager2)
-    implementation(libs.androidx.swiperefreshlayout)
-    implementation(libs.androidx.recyclerview)
 
     // Room Database
     implementation(libs.room.runtime)
@@ -183,12 +184,30 @@ dependencies {
 
     // Utility Libraries
     implementation(libs.timber)
-    implementation(libs.glide)
-    ksp(libs.glide.compiler)
     implementation(libs.weather.icon.view)
     implementation(libs.calendar.view)
-    implementation(libs.algolia.search)
-    implementation(libs.elastic.views)
+    implementation(libs.algolia.android)
+    implementation(libs.algolia.compose)
+    implementation(libs.algolia.paging3)
+    implementation(libs.androidx.paging.compose)
+
+    // Compose
+    val composeBom = platform(libs.compose.bom)
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.compose.activity)
+    implementation(libs.compose.viewmodel)
+    implementation(libs.compose.navigation)
+    implementation(libs.compose.hilt.navigation)
+    implementation(libs.coil.compose)
+    implementation(libs.compose.runtime.lifecycle)
+    implementation(libs.kotlinx.serialization.json)
+    debugImplementation(libs.compose.ui.tooling)
 
     // Play Services & Firebase
     implementation(libs.play.services.location)

@@ -16,14 +16,11 @@ preference = "1.2.1"
 legacy-support = "1.0.0"
 work = "2.9.0"
 paging = "3.2.1"
+splashscreen = "1.0.1"
 
 # UI / Design
 material = "1.11.0"
-constraintlayout = "2.1.4"
 viewpager2 = "1.0.0"
-swiperefreshlayout = "1.1.0"
-recyclerview = "1.3.2"
-glide = "4.16.0"
 
 # Kotlin Coroutines
 coroutines = "1.7.3"
@@ -32,7 +29,7 @@ coroutines = "1.7.3"
 room = "2.6.1"
 
 # Navigation
-navigation = "2.7.7"
+navigation = "2.8.6"
 
 # Network
 retrofit = "2.9.0"
@@ -47,8 +44,9 @@ hilt = "2.48.1"
 timber = "5.0.1"
 weather-icon = "1.1.0"
 calendar = "v1.0.3"
-algolia = "2.11.1" # May need updating based on compatibility
-elastic = "2.0.7"
+algolia = "3.3.3" 
+paging-compose = "3.2.1"
+kotlinx-serialization = "1.6.3"
 
 # Firebase & Google
 firebase-bom = "32.7.2"
@@ -64,6 +62,8 @@ junit-ext = "1.1.5"
 arch-core = "2.2.0"
 test-core = "1.5.0"
 test-rules = "1.5.0"
+material-icons-extended = "1.6.1"
+compose-bom = "2024.12.01"
 
 [libraries]
 # Plugins (for classpath)
@@ -82,20 +82,17 @@ kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-co
 # AndroidX
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
-androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-common-java8 = { module = "androidx.lifecycle:lifecycle-common-java8", version.ref = "lifecycle" }
 androidx-legacy-support = { module = "androidx.legacy:legacy-support-v4", version.ref = "legacy-support" }
 androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preference" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 
 # UI
 google-material = { module = "com.google.android.material:material", version.ref = "material" }
-androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
-androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }
-androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 
 # Database (Room)
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
@@ -121,18 +118,34 @@ hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hil
 
 # Utilities
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
-glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
-glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 weather-icon-view = { module = "com.github.pwittchen:weathericonview", version.ref = "weather-icon" }
 calendar-view = { module = "com.github.shrikanth7698:Collapsible-Calendar-View-Android", version.ref = "calendar" }
-algolia-search = { module = "com.algolia:instantsearch-android", version.ref = "algolia" }
-elastic-views = { module = "com.github.skydoves:elasticviews", version.ref = "elastic" }
+algolia-android = { module = "com.algolia:instantsearch-android", version.ref = "algolia" }
+algolia-compose = { module = "com.algolia:instantsearch-compose", version.ref = "algolia" }
+algolia-paging3 = { module = "com.algolia:instantsearch-android-paging3", version.ref = "algolia" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging-compose" }
 
 # Google & Firebase
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-location" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx" }
+
+# Compose
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material-icons-extended" }
+compose-activity = { module = "androidx.activity:activity-compose", version = "1.8.2" }
+compose-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
+compose-hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version = "1.1.0" }
+coil-compose = { module = "io.coil-kt:coil-compose", version = "2.5.0" }
+compose-runtime-lifecycle = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -160,3 +173,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigation-safe-args" }
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt-plugin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

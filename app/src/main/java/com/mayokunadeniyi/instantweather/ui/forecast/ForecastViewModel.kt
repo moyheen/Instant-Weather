@@ -1,6 +1,5 @@
 package com.mayokunadeniyi.instantweather.ui.forecast
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mayokunadeniyi.instantweather.data.model.WeatherForecast
@@ -19,6 +18,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
+import dagger.hilt.android.lifecycle.HiltViewModel
 
 /**
  * Created by Mayokun Adeniyi on 28/02/2020.
@@ -28,7 +28,8 @@ data class ForecastUiState(
     val isLoading: Boolean = false,
     val forecast: List<WeatherForecast>? = null,
     val filteredForecast: List<WeatherForecast> = emptyList(),
-    val dataFetchState: Boolean = true
+    val dataFetchState: Boolean = true,
+    val selectedDay: Day? = null
 )
 
 sealed class ForecastUiEvent {
@@ -37,7 +38,8 @@ sealed class ForecastUiEvent {
     data class UpdateWeatherForecast(val selectedDay: Day, val list: List<WeatherForecast>) : ForecastUiEvent()
 }
 
-class ForecastFragmentViewModel @Inject constructor(
+@HiltViewModel
+class ForecastViewModel @Inject constructor(
     private val repository: WeatherRepository,
     @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
@@ -58,14 +60,19 @@ class ForecastFragmentViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = repository.getForecastWeather(cityId!!, false)) {
                 is Result.Success -> {
-                    if (!result.data.isNullOrEmpty()) {
-                        val forecasts = result.data
+                    val forecasts = result.data
+                    if (!forecasts.isNullOrEmpty()) {
                         _uiState.update { it.copy(isLoading = false, dataFetchState = true, forecast = forecasts) }
+                        
+                        // Filter for the current day by default if nothing selected
+                        val dayToFilter = _uiState.value.selectedDay ?: getTodayDay()
+                        updateWeatherForecast(dayToFilter, forecasts)
                     } else {
                         refreshForecastData(cityId)
                     }
                 }
-                else -> _uiState.update { it.copy(isLoading = true) }
+                is Result.Error -> _uiState.update { it.copy(isLoading = false, dataFetchState = false) }
+                is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
             }
         }
     }
@@ -84,6 +91,10 @@ class ForecastFragmentViewModel @Inject constructor(
                         _uiState.update { it.copy(isLoading = false, dataFetchState = true, forecast = forecast) }
                         repository.deleteForecastData()
                         repository.storeForecastData(forecast)
+                        
+                        // Filter for the current selected day (or today if none)
+                        val dayToFilter = _uiState.value.selectedDay ?: getTodayDay()
+                        updateWeatherForecast(dayToFilter, forecast)
                     } else {
                         _uiState.update { it.copy(isLoading = false, dataFetchState = false, forecast = null) }
                     }
@@ -100,24 +111,36 @@ class ForecastFragmentViewModel @Inject constructor(
 
     private fun updateWeatherForecast(selectedDay: Day, list: List<WeatherForecast>) {
         viewModelScope.launch(defaultDispatcher) {
-            selectedDay.let {
-                val checkerDay = it.day
-                val checkerMonth = it.month
-                val checkerYear = it.year
+            val checkerDay = selectedDay.day
+            val checkerMonth = selectedDay.month
+            val checkerYear = selectedDay.year
 
-                val filteredList = list.filter { weatherForecast ->
-                    val format = SimpleDateFormat("d MMM y, h:mma", Locale.ENGLISH)
-                    val formattedDate = format.parse(weatherForecast.date)
-                    val weatherForecastDay = formattedDate?.date
-                    val weatherForecastMonth = formattedDate?.month
-                    val weatherForecastYear = formattedDate?.year
-                    // This checks if the selected day, month and year are equal. The year requires an addition of 1900 to get the correct year.
-                    weatherForecastDay == checkerDay && weatherForecastMonth == checkerMonth && weatherForecastYear?.plus(
-                        1900
-                    ) == checkerYear
+            val format = SimpleDateFormat("d MMM y, h:mma", Locale.ENGLISH)
+            val calendar = java.util.Calendar.getInstance()
+
+            val filteredList = list.filter { weatherForecast ->
+                val date = format.parse(weatherForecast.date)
+                if (date != null) {
+                    calendar.time = date
+                    val forecastDay = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+                    val forecastMonth = calendar.get(java.util.Calendar.MONTH)
+                    val forecastYear = calendar.get(java.util.Calendar.YEAR)
+
+                    forecastDay == checkerDay && forecastMonth == checkerMonth && forecastYear == checkerYear
+                } else {
+                    false
                 }
-                _uiState.update { it.copy(filteredForecast = filteredList) }
             }
+            _uiState.update { it.copy(filteredForecast = filteredList, selectedDay = selectedDay) }
         }
+    }
+
+    fun getTodayDay(): Day {
+        val today = java.util.Calendar.getInstance()
+        return Day(
+            today.get(java.util.Calendar.YEAR),
+            today.get(java.util.Calendar.MONTH),
+            today.get(java.util.Calendar.DAY_OF_MONTH)
+        )
     }
 }

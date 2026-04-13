@@ -10,6 +10,7 @@
     <string name="humidity">Humidity</string>
     <string name="weather_history">Weather History</string>
     <string name="sort_by">Sort by:</string>
+    <string name="cache">Cache</string>
     <string name="cache_string">Cache duration (seconds)</string>
     <string name="loading_text">Fetching weather</string>
     <string name="weather_in">Weather in </string>
@@ -46,6 +47,7 @@
     <string name="highprecision_internet_error">An error occurred when getting your location! \n\n Ensure your device is connected to the internet. \n\n Swipe down to refresh.</string>
     <string name="location_optimization_error">Location Optimization Permission was not granted! \n\n Enable permission manually in application settings \n and restart the application.</string>
     <string name="general_main_error">An error occurred in getting your location! \n\n Ensure your device is connected to the internet \n\n Swipe down to refresh.</string>
+    <string name="search_error">An error occurred! Please try again.</string>
     <string name="enable_gps">Enable your GPS and restart!</string>
     <string name="location_permission">Location Permission</string>
     <string name="access_location_message">This application requires access to your location to function!</string>
@@ -57,4 +59,6 @@
     <string name="temp_unit_celsius">Celsius/°C</string>
     <string name="temp_unit_fahrenheit">Fahrenheit/°F</string>
     <string name="rate_app">Rate this app</string>
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
 </resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.shrikanthravi.collapsiblecalendarview.widget.CollapsibleCalendar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/calendarView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:buttonLeft_drawable="@drawable/ic_arrow_left"
+    app:buttonLeft_drawableTintColor="#DB6A63"
+    app:buttonRight_drawable="@drawable/ic_arrow_right"
+    app:buttonRight_drawableTintColor="#DB6A63"
+    app:expandIconColor="#DB6A63"
+    app:selectedItem_background="@drawable/circle_orange_solid_background"
+    app:selectedItem_textColor="#000"
+    app:todayItem_background="@drawable/circle_blue_solid_background"
+    app:todayItem_textColor="#FFF" />
