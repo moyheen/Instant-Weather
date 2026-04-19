@@ -106,7 +106,7 @@ private fun SearchScreenContent(
     onDismissWeatherDetail: () -> Unit,
     onSearchSubmit: (String) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage = stringResource(R.string.search_error)
