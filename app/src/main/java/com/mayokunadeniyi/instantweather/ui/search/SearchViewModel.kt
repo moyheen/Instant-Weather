@@ -90,9 +90,7 @@ class SearchViewModel @Inject constructor(
     fun onEvent(event: SearchUiEvent) {
         when (event) {
             is SearchUiEvent.GetSearchWeather -> getSearchWeather(event.name)
-            is SearchUiEvent.DismissWeatherDetail -> {
-                _uiState.update { it.copy(weatherInfo = null) }
-            }
+            is SearchUiEvent.DismissWeatherDetail -> _uiState.update { it.copy(weatherInfo = null) }
         }
     }
 
@@ -108,31 +106,16 @@ class SearchViewModel @Inject constructor(
                                 convertKelvinToCelsius(this.networkWeatherCondition.temp)
                         }
                         _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                dataFetchState = true,
-                                weatherInfo = weather
-                            )
+                            it.copy(isLoading = false, dataFetchState = true, weatherInfo = weather)
                         }
                     } else {
                         _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                dataFetchState = false,
-                                weatherInfo = null
-                            )
+                            it.copy(isLoading = false, dataFetchState = false, weatherInfo = null)
                         }
                     }
                 }
 
-                else -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            dataFetchState = false
-                        )
-                    }
-                }
+                else -> _uiState.update { it.copy(isLoading = false, dataFetchState = false) }
             }
         }
     }
