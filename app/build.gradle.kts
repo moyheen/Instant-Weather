@@ -204,7 +204,6 @@ dependencies {
     implementation(libs.compose.viewmodel)
     implementation(libs.compose.navigation)
     implementation(libs.compose.hilt.navigation)
-    implementation(libs.coil.compose)
     implementation(libs.compose.runtime.lifecycle)
     implementation(libs.kotlinx.serialization.json)
     debugImplementation(libs.compose.ui.tooling)

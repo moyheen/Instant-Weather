@@ -28,7 +28,6 @@ The application follows modern Android development practices:
 * [Algolia InstantSearch](https://www.algolia.com/doc/guides/building-search-ui/getting-started/android-compose/) - Seamless search integration with Compose support.
 * [Paging 3](https://developer.android.com/topic/libraries/architecture/paging/v3-paged-data) - For loading and displaying pages of data from the network and database.
 * [Work Manager](https://developer.android.com/topic/libraries/architecture/workmanager) - To manage background jobs like weather updates.
-* [Coil](https://coil-kt.github.io/coil/) - An image loading library for Android backed by Kotlin Coroutines.
 * [Timber](https://github.com/JakeWharton/timber) - Extensible logging utility.
 * [AndroidX Splash Screen](https://developer.android.com/develop/ui/views/launch/splash-screen) - Official API for splash screens across all Android versions.
 * [Gradle Version Catalog](https://docs.gradle.org/current/userguide/platforms.html) - Centralized dependency management.
