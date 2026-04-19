@@ -143,7 +143,6 @@ compose-activity = { module = "androidx.activity:activity-compose", version = "1
 compose-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 compose-hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version = "1.1.0" }
-coil-compose = { module = "io.coil-kt:coil-compose", version = "2.5.0" }
 compose-runtime-lifecycle = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
